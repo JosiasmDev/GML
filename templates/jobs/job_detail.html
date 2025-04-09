@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ job.position }} en {{ job.company }} - GML{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">{{ job.position }}</h4>
+                <h5 class="mb-0">{{ job.company }}</h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Ubicación</h6>
+                        <p>
+                            <i class="fas fa-map-marker-alt me-2 text-primary"></i>
+                            {{ job.city }}, {{ job.country }}
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Valoración de la empresa</h6>
+                        <p>
+                            {% if job.company_valuation %}
+                                <div class="progress">
+                                    <div class="progress-bar bg-success" role="progressbar" style="width: {{ job.company_valuation }}%;" 
+                                         aria-valuenow="{{ job.company_valuation }}" aria-valuemin="0" aria-valuemax="100">
+                                        {{ job.company_valuation }}/100
+                                    </div>
+                                </div>
+                            {% else %}
+                                <span class="text-muted">No disponible</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <h6 class="text-muted">Tipo de contrato</h6>
+                        <p><i class="fas fa-file-contract me-2 text-primary"></i> {{ job.contract_type }}</p>
+                    </div>
+                    <div class="col-md-4">
+                        <h6 class="text-muted">Salario</h6>
+                        <p><i class="fas fa-money-bill-wave me-2 text-primary"></i> {{ job.salary }}</p>
+                    </div>
+                    <div class="col-md-4">
+                        <h6 class="text-muted">Experiencia mínima</h6>
+                        <p><i class="fas fa-briefcase me-2 text-primary"></i> {{ job.min_exp }}</p>
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <a href="{{ job.url }}" target="_blank" class="btn btn-primary">
+                        <i class="fas fa-external-link-alt me-2"></i>Ver en Infojobs
+                    </a>
+                    <a href="{% url 'jobs:index' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Volver
+                    </a>
+                </div>
+            </div>
+            <div class="card-footer text-muted">
+                <small>Publicado: {{ job.created_at|date:"d/m/Y H:i" }}</small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
