@@ -1,0 +1,21 @@
+{% extends 'jobs/base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 text-center">
+        <div class="card">
+            <div class="card-body">
+                <i class="fas fa-tools fa-4x mb-4" style="color: var(--accent-color);"></i>
+                <h2 class="card-title mb-4">Portal en Construcción</h2>
+                <p class="card-text">
+                    El portal <strong>{{ portal_name }}</strong> está actualmente en desarrollo.
+                    Próximamente estará disponible para búsquedas de empleo.
+                </p>
+                <a href="{% url 'jobs:dashboard' %}" class="btn btn-primary mt-3">
+                    <i class="fas fa-arrow-left"></i> Volver al Portal Principal
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

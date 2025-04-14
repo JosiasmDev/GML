@@ -1,0 +1,356 @@
+{% extends 'jobs/base.html' %}
+
+{% block content %}
+<div class="row">
+    <!-- Panel de búsqueda -->
+    <div class="col-md-4">
+        <div class="search-container">
+            <h5 class="mb-3">Búsqueda de Ofertas</h5>
+            <div class="d-flex justify-content-end mb-3">
+                <button id="deleteAllButton" class="btn btn-danger">
+                    <i class="fas fa-trash"></i> Borrar Todas las Ofertas
+                </button>
+            </div>
+            <form id="searchForm">
+                <div class="mb-3">
+                    <label for="keywords" class="form-label">Palabras clave</label>
+                    <input type="text" class="form-control" id="keywords" name="keywords" required>
+                </div>
+                <div class="mb-3">
+                    <div class="form-select" id="provinciasDiv">
+                        <label for="of_provincia" class="form-label">en...</label>
+                        <select class="chosen-select" data-placeholder="Toda España" id="of_provincia" name="of_provincia" title="Selecciona una de las opciones o escribe tu opción">
+                            <option value="0" selected="true">Toda España</option>
+                            <option value="foreign">El extranjero</option>
+                            <optgroup label="Más comunes">
+                                <option value="33">Madrid</option>
+                                <option value="9">Barcelona</option>
+                                <option value="49">Valencia/València</option>
+                                <option value="43">Sevilla</option>
+                            </optgroup>
+                            <optgroup label="Todas">
+                                <option value="28">A Coruña</option>
+                                <option value="2">Álava/Araba</option>
+                                <option value="3">Albacete</option>
+                                <option value="4">Alicante/Alacant</option>
+                                <option value="5">Almería</option>
+                                <option value="6">Asturias</option>
+                                <option value="7">Ávila</option>
+                                <option value="8">Badajoz</option>
+                                <option value="9">Barcelona</option>
+                                <option value="10">Burgos</option>
+                                <option value="11">Cáceres</option>
+                                <option value="12">Cádiz</option>
+                                <option value="13">Cantabria</option>
+                                <option value="14">Castellón/Castelló</option>
+                                <option value="15">Ceuta</option>
+                                <option value="16">Ciudad Real</option>
+                                <option value="17">Córdoba</option>
+                                <option value="18">Cuenca</option>
+                                <option value="19">Girona</option>
+                                <option value="21">Granada</option>
+                                <option value="22">Guadalajara</option>
+                                <option value="23">Guipúzcoa/Gipuzkoa</option>
+                                <option value="24">Huelva</option>
+                                <option value="25">Huesca</option>
+                                <option value="26">Islas Baleares/Illes Balears</option>
+                                <option value="27">Jaén</option>
+                                <option value="29">La Rioja</option>
+                                <option value="20">Las Palmas</option>
+                                <option value="30">León</option>
+                                <option value="31">Lleida</option>
+                                <option value="32">Lugo</option>
+                                <option value="33">Madrid</option>
+                                <option value="34">Málaga</option>
+                                <option value="35">Melilla</option>
+                                <option value="36">Murcia</option>
+                                <option value="37">Navarra</option>
+                                <option value="38">Ourense</option>
+                                <option value="39">Palencia</option>
+                                <option value="40">Pontevedra</option>
+                                <option value="41">Salamanca</option>
+                                <option value="46">Santa Cruz de Tenerife</option>
+                                <option value="42">Segovia</option>
+                                <option value="43">Sevilla</option>
+                                <option value="44">Soria</option>
+                                <option value="45">Tarragona</option>
+                                <option value="47">Teruel</option>
+                                <option value="48">Toledo</option>
+                                <option value="49">Valencia/València</option>
+                                <option value="50">Valladolid</option>
+                                <option value="51">Vizcaya/Bizkaia</option>
+                                <option value="52">Zamora</option>
+                                <option value="53">Zaragoza</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                </div>
+                <button type="submit" id="searchOffers" class="btn btn-cta w-100" title="Buscar trabajo con mis preferencias">
+                    <i class="fas fa-search"></i> Buscar
+                </button>
+            </form>
+        </div>
+
+        <!-- Historial de búsquedas -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Historial de Búsquedas</h5>
+            </div>
+            <div class="card-body">
+                <div class="list-group">
+                    {% for search in search_history %}
+                    <div class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">{{ search.keywords }}</h6>
+                            <small>{{ search.created_at|date:"d/m/Y H:i" }}</small>
+                        </div>
+                        <p class="mb-1">{{ search.location }} - {{ search.results_count }} resultados</p>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted">No hay búsquedas recientes</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lista de ofertas -->
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Ofertas de Trabajo</h5>
+                <span class="badge bg-primary">{{ total_jobs }} ofertas</span>
+            </div>
+            <div class="card-body">
+                <div id="jobsList">
+                    {% for job in jobs %}
+                    <div class="card mb-3 job-card" data-job-id="{{ job.id }}">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h5 class="card-title">
+                                        <a href="{{ job.url }}" target="_blank" class="text-decoration-none">
+                                            {{ job.title }}
+                                        </a>
+                                    </h5>
+                                    <h6 class="card-subtitle mb-2 text-muted">{{ job.company }}</h6>
+                                </div>
+                                <div class="btn-group">
+                                    <button class="btn btn-sm btn-outline-primary toggle-favorite" title="Marcar como favorito">
+                                        <i class="fas {% if job.is_favorite %}fa-star{% else %}fa-star-o{% endif %}"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger delete-job" title="Eliminar oferta">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <p class="card-text">
+                                <small class="text-muted">
+                                    <i class="fas fa-map-marker-alt"></i> {{ job.location }}
+                                    {% if job.published_date %}
+                                    <i class="fas fa-calendar-alt ms-2"></i> {{ job.published_date }}
+                                    {% endif %}
+                                    <i class="fas fa-clock ms-2"></i> {{ job.created_at|date:"d/m/Y H:i" }}
+                                </small>
+                            </p>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted">No hay ofertas disponibles</p>
+                    {% endfor %}
+                </div>
+
+                <!-- Paginación -->
+                {% if jobs.has_other_pages %}
+                <nav aria-label="Page navigation" class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        {% if jobs.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ jobs.previous_page_number }}">Anterior</a>
+                        </li>
+                        {% endif %}
+
+                        {% for num in jobs.paginator.page_range %}
+                        <li class="page-item {% if jobs.number == num %}active{% endif %}">
+                            <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                        </li>
+                        {% endfor %}
+
+                        {% if jobs.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ jobs.next_page_number }}">Siguiente</a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <h1>Dashboard de Ofertas de Trabajo</h1>
+            <p>Total de ofertas: {{ total_jobs }}</p>
+            
+            <div class="d-flex justify-content-between mb-3">
+                <button id="searchButton" class="btn btn-primary">Buscar Ofertas</button>
+                <button id="deleteAllButton" class="btn btn-danger">Borrar Todas las Ofertas</button>
+            </div>
+            
+            <div id="searchForm" class="card mb-4" style="display: none;">
+                <!-- ... existing code ... -->
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Inicializar el selector de provincias con Chosen
+    $("#of_provincia").chosen({
+        width: "100%",
+        no_results_text: "No se encontraron resultados para",
+        placeholder_text_single: "Selecciona una ubicación",
+        search_contains: true
+    });
+    
+    // Manejar el envío del formulario de búsqueda
+    $('#searchForm').on('submit', function(e) {
+        e.preventDefault();
+        prepareSearch();
+    });
+    
+    // Función prepareSearch
+    function prepareSearch() {
+        const keywords = $('#keywords').val();
+        const locationValue = $('#of_provincia').val();
+        
+        // Validar que se hayan ingresado palabras clave
+        if (!keywords || keywords.trim() === '') {
+            showError('Por favor, introduce algunas palabras clave para buscar');
+            return;
+        }
+        
+        // Mostrar indicador de carga
+        $('#searchOffers').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Buscando...');
+        
+        $.ajax({
+            url: "{% url 'jobs:search_jobs' %}",
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                keywords: keywords,
+                location: locationValue
+            }),
+            success: function(response) {
+                console.log('Respuesta del servidor:', response);
+                if (response.success) {
+                    // Recargar la página para mostrar los resultados
+                    window.location.reload();
+                } else {
+                    showError(response.message || 'Error en la búsqueda');
+                    // Restaurar el botón
+                    $('#searchOffers').prop('disabled', false).html('<i class="fas fa-search"></i> Buscar');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Error en la petición:', xhr.responseText, status, error);
+                showError('Error al realizar la búsqueda: ' + error);
+                // Restaurar el botón
+                $('#searchOffers').prop('disabled', false).html('<i class="fas fa-search"></i> Buscar');
+            }
+        });
+    }
+    
+    // Función para mostrar mensajes de error
+    function showError(message) {
+        // Crear el elemento de alerta si no existe
+        let alertDiv = $('#searchAlert');
+        if (alertDiv.length === 0) {
+            alertDiv = $('<div id="searchAlert" class="alert alert-danger alert-dismissible fade show" role="alert">' +
+                '<span class="message"></span>' +
+                '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>' +
+                '</div>');
+            $('.search-container').prepend(alertDiv);
+        }
+        
+        // Actualizar el mensaje y mostrar la alerta
+        alertDiv.find('.message').text(message);
+        alertDiv.show();
+        
+        // Ocultar la alerta después de 5 segundos
+        setTimeout(function() {
+            alertDiv.fadeOut();
+        }, 5000);
+    }
+
+    // Manejar el toggle de favoritos
+    $('.toggle-favorite').on('click', function() {
+        const jobCard = $(this).closest('.job-card');
+        const jobId = jobCard.data('job-id');
+        
+        $.ajax({
+            url: `/job/${jobId}/toggle-favorite/`,
+            method: 'POST',
+            success: function(response) {
+                if (response.success) {
+                    const icon = jobCard.find('.toggle-favorite i');
+                    icon.toggleClass('fa-star fa-star-o');
+                }
+            }
+        });
+    });
+    
+    // Manejar la eliminación de ofertas
+    $('.delete-job').on('click', function() {
+        if (!confirm('¿Estás seguro de que quieres eliminar esta oferta?')) {
+            return;
+        }
+        
+        const jobCard = $(this).closest('.job-card');
+        const jobId = jobCard.data('job-id');
+        
+        $.ajax({
+            url: `/job/${jobId}/delete/`,
+            method: 'POST',
+            success: function(response) {
+                if (response.success) {
+                    jobCard.fadeOut(function() {
+                        $(this).remove();
+                    });
+                }
+            }
+        });
+    });
+
+    // Función para borrar todas las ofertas
+    $('#deleteAllButton').click(function() {
+        if (confirm('¿Estás seguro de que quieres borrar todas las ofertas? Esta acción no se puede deshacer.')) {
+            $.ajax({
+                url: '/delete-all/',
+                type: 'POST',
+                data: {
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        alert(response.message);
+                        location.reload();
+                    } else {
+                        alert('Error: ' + response.message);
+                    }
+                },
+                error: function() {
+                    alert('Error al comunicarse con el servidor');
+                }
+            });
+        }
+    });
+});
+</script>
+{% endblock %} 

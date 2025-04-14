@@ -1,11 +1,18 @@
 from django.contrib import admin
-from .models import JobOffer
-
+from .models import JobOffer, SearchHistory
 
 @admin.register(JobOffer)
 class JobOfferAdmin(admin.ModelAdmin):
-    list_display = ('position', 'company', 'city', 'contract_type', 'created_at')
-    list_filter = ('city', 'company', 'contract_type', 'created_at')
-    search_fields = ('position', 'company', 'city', 'country')
+    list_display = ('title', 'company', 'location', 'source', 'created_at', 'is_favorite')
+    list_filter = ('source', 'is_favorite', 'created_at')
+    search_fields = ('title', 'company', 'description')
+    ordering = ('-created_at',)
     date_hierarchy = 'created_at'
-    ordering = ('-created_at',) 
+
+@admin.register(SearchHistory)
+class SearchHistoryAdmin(admin.ModelAdmin):
+    list_display = ('keywords', 'location', 'source', 'created_at', 'results_count')
+    list_filter = ('source', 'created_at')
+    search_fields = ('keywords', 'location')
+    ordering = ('-created_at',)
+    date_hierarchy = 'created_at'
