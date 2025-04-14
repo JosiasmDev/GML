@@ -833,7 +833,12 @@ class InfoJobsScraper:
             
             # Dar tiempo adicional para que se cargue todo el contenido
             logger.info("Esperando a que se cargue todo el contenido...")
-            self.random_sleep(3, 5)
+            self.random_sleep(5, 8)  # Aumentado el tiempo de espera
+            
+            # Hacer scroll para cargar todo el contenido
+            logger.info("Haciendo scroll para cargar todo el contenido...")
+            self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+            self.random_sleep(2, 3)  # Esperar después del scroll
             
             # Obtener el HTML de la página
             html = self.driver.page_source
@@ -920,13 +925,13 @@ class InfoJobsScraper:
                     
                     # Esperar a que se carguen los resultados
                     self.random_sleep(3, 5)
-                    
-                    # Obtener el HTML de la página
-                    html = self.driver.page_source
-                    soup = BeautifulSoup(html, 'html.parser')
                 
-                # Extraer las ofertas de trabajo de la página actual
+                # Extraer todas las ofertas de la página actual usando Selenium
+                logger.info(f"Procesando página {page} de {total_pages}")
+                
+                # Intentar diferentes selectores para las ofertas
                 job_cards_selectors = [
+                    ".ij-OfferCard",
                     ".ij-OfferCardContent-description, .ij-OfferCardContent",
                     ".job-card",
                     ".offer-card",
@@ -936,13 +941,28 @@ class InfoJobsScraper:
                 
                 page_job_cards = []
                 for selector in job_cards_selectors:
-                    page_job_cards = soup.select(selector)
-                    if page_job_cards:
-                        logger.info(f"Ofertas encontradas en la página {page} con selector: {selector}")
-                        break
+                    try:
+                        job_cards = self.driver.find_elements(By.CSS_SELECTOR, selector)
+                        if job_cards:
+                            logger.info(f"Ofertas encontradas en la página {page} con selector: {selector}")
+                            page_job_cards = job_cards
+                            break
+                    except Exception as e:
+                        logger.info(f"Error al buscar ofertas con selector {selector}: {str(e)}")
+                        continue
                 
-                logger.info(f"Ofertas extraídas de la página {page}: {len(page_job_cards)}")
-                all_job_cards.extend(page_job_cards)
+                logger.info(f"Ofertas encontradas en la página {page}: {len(page_job_cards)}")
+                
+                # Convertir los elementos de Selenium a BeautifulSoup para procesarlos
+                for job_card in page_job_cards:
+                    try:
+                        # Obtener el HTML del elemento
+                        job_html = job_card.get_attribute('outerHTML')
+                        job_soup = BeautifulSoup(job_html, 'html.parser')
+                        all_job_cards.append(job_soup)
+                    except Exception as e:
+                        logger.error(f"Error al procesar oferta: {str(e)}")
+                        continue
             
             logger.info(f"Total de ofertas extraídas de todas las páginas: {len(all_job_cards)}")
             
