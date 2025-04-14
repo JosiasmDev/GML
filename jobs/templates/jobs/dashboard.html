@@ -123,41 +123,44 @@
             </div>
             <div class="card-body">
                 <div id="jobsList">
-                    {% for job in jobs %}
-                    <div class="card mb-3 job-card" data-job-id="{{ job.id }}">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-start">
-                                <div>
-                                    <h5 class="card-title">
-                                        <a href="{{ job.url }}" target="_blank" class="text-decoration-none">
-                                            {{ job.title }}
-                                        </a>
-                                    </h5>
-                                    <h6 class="card-subtitle mb-2 text-muted">{{ job.company }}</h6>
-                                </div>
-                                <div class="btn-group">
-                                    <button class="btn btn-sm btn-outline-primary toggle-favorite" title="Marcar como favorito">
-                                        <i class="fas {% if job.is_favorite %}fa-star{% else %}fa-star-o{% endif %}"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-outline-danger delete-job" title="Eliminar oferta">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>
-                            </div>
-                            <p class="card-text">
-                                <small class="text-muted">
-                                    <i class="fas fa-map-marker-alt"></i> {{ job.location }}
-                                    {% if job.published_date %}
-                                    <i class="fas fa-calendar-alt ms-2"></i> {{ job.published_date }}
-                                    {% endif %}
-                                    <i class="fas fa-clock ms-2"></i> {{ job.created_at|date:"d/m/Y H:i" }}
-                                </small>
-                            </p>
-                        </div>
-                    </div>
-                    {% empty %}
-                    <p class="text-muted">No hay ofertas disponibles</p>
-                    {% endfor %}
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Título</th>
+                                <th>Empresa</th>
+                                <th>Ubicación</th>
+                                <th>Salario</th>
+                                <th>Modo de trabajo</th>
+                                <th>Experiencia</th>
+                                <th>Tipo de contrato</th>
+                                <th>Fecha</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for job in jobs %}
+                            <tr>
+                                <td><a href="{{ job.url }}" target="_blank">{{ job.title }}</a></td>
+                                <td>{{ job.company }}</td>
+                                <td>{{ job.location }}</td>
+                                <td>{{ job.salary|default:"No especificado" }}</td>
+                                <td>{{ job.work_mode|default:"No especificado" }}</td>
+                                <td>{{ job.min_experience|default:"No especificado" }}</td>
+                                <td>{{ job.contract_type|default:"No especificado" }}</td>
+                                <td>{{ job.published_date|default:"No especificado" }}</td>
+                                <td>
+                                    <a href="{{ job.url }}" target="_blank" class="btn btn-sm btn-primary">
+                                        <i class="fas fa-external-link-alt"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="9" class="text-center">No hay ofertas de trabajo disponibles</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
 
                 <!-- Paginación -->

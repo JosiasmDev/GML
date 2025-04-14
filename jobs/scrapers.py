@@ -220,6 +220,192 @@ class InfoJobsScraper:
             logger.error(f"Error al capturar pantalla: {str(e)}")
             return None
 
+    def extract_job_details(self, url):
+        """Extrae los detalles de una oferta de trabajo visitando su página"""
+        try:
+            logger.info(f"Extrayendo detalles de la oferta: {url}")
+            self.driver.get(url)
+            
+            # Reducir el tiempo de espera inicial al mínimo
+            self.random_sleep(0.3, 0.5)
+            
+            # Obtener el HTML de la página completa
+            page_html = self.driver.page_source
+            page_soup = BeautifulSoup(page_html, 'html.parser')
+            
+            # Extraer salario
+            salary = ""
+            salary_selectors = [
+                ".ij-OfferDetailHeader-detailsList-item:contains('€')",
+                ".ij-OfferDetailHeader-detailsList-item p:contains('€')",
+                ".ij-OfferDetailHeader-detailsList-item .ij-Text:contains('€')",
+                ".salary",
+                ".job-salary",
+                ".ij-OfferDetailHeader-descriptionList-item:contains('€')",
+                ".ij-OfferDetailHeader-descriptionList-item p:contains('€')",
+                ".ij-OfferDetailHeader-descriptionList-item .ij-Text:contains('€')",
+                "p:contains('€')",
+                ".ij-Text:contains('€')",
+                "span:contains('€')",
+                "div:contains('€')"
+            ]
+            
+            for selector in salary_selectors:
+                salary_elem = page_soup.select_one(selector)
+                if salary_elem:
+                    salary = salary_elem.text.strip()
+                    break
+            
+            # Extraer modo de trabajo
+            work_mode = ""
+            work_mode_selectors = [
+                ".ij-OfferDetailHeader-detailsList-item:has(svg[width='16'][height='16'] path[d*='m12.98 5.588'])",
+                ".ij-OfferDetailHeader-detailsList-item:has(svg path[d*='m12.98 5.588'])",
+                ".ij-OfferDetailHeader-detailsList-item p:contains('Presencial')",
+                ".ij-OfferDetailHeader-detailsList-item p:contains('Teletrabajo')",
+                ".ij-OfferDetailHeader-detailsList-item p:contains('Híbrido')",
+                ".work-mode",
+                ".job-work-mode",
+                ".ij-OfferDetailHeader-descriptionList-item:has(svg[width='16'][height='16'] path[d*='m12.98 5.588'])",
+                ".ij-OfferDetailHeader-descriptionList-item:has(svg path[d*='m12.98 5.588'])",
+                ".ij-OfferDetailHeader-descriptionList-item p:contains('Presencial')",
+                ".ij-OfferDetailHeader-descriptionList-item p:contains('Teletrabajo')",
+                ".ij-OfferDetailHeader-descriptionList-item p:contains('Híbrido')",
+                "p:contains('Presencial')",
+                "p:contains('Teletrabajo')",
+                "p:contains('Híbrido')",
+                "span:contains('Presencial')",
+                "span:contains('Teletrabajo')",
+                "span:contains('Híbrido')",
+                "div:contains('Presencial')",
+                "div:contains('Teletrabajo')",
+                "div:contains('Híbrido')"
+            ]
+            
+            for selector in work_mode_selectors:
+                work_mode_elem = page_soup.select_one(selector)
+                if work_mode_elem:
+                    # Intentar obtener solo el texto del párrafo dentro del elemento
+                    p_elem = work_mode_elem.select_one("p")
+                    if p_elem:
+                        work_mode = p_elem.text.strip()
+                    else:
+                        work_mode = work_mode_elem.text.strip()
+                    break
+            
+            # Extraer experiencia mínima
+            min_experience = ""
+            experience_selectors = [
+                ".ij-OfferDetailHeader-detailsList-item:has(svg[width='16'][height='16'] path[d*='M12.333 3.834'])",
+                ".ij-OfferDetailHeader-detailsList-item:has(svg path[d*='M12.333 3.834'])",
+                ".ij-OfferDetailHeader-detailsList-item p:contains('Experiencia mínima')",
+                ".experience",
+                ".job-experience",
+                ".ij-OfferDetailHeader-descriptionList-item:has(svg[width='16'][height='16'] path[d*='M12.333 3.834'])",
+                ".ij-OfferDetailHeader-descriptionList-item:has(svg path[d*='M12.333 3.834'])",
+                ".ij-OfferDetailHeader-descriptionList-item p:contains('Experiencia mínima')",
+                "p:contains('Experiencia mínima')",
+                "span:contains('Experiencia mínima')",
+                "div:contains('Experiencia mínima')"
+            ]
+            
+            for selector in experience_selectors:
+                experience_elem = page_soup.select_one(selector)
+                if experience_elem:
+                    # Intentar obtener solo el texto del párrafo dentro del elemento
+                    p_elem = experience_elem.select_one("p")
+                    if p_elem:
+                        min_experience = p_elem.text.strip()
+                    else:
+                        min_experience = experience_elem.text.strip()
+                    break
+            
+            # Extraer tipo de contrato
+            contract_type = ""
+            contract_selectors = [
+                ".ij-OfferDetailHeader-detailsList-item:has(svg[width='16'][height='16'] path[d*='M10.973 14.834'])",
+                ".ij-OfferDetailHeader-detailsList-item:has(svg path[d*='M10.973 14.834'])",
+                ".ij-OfferDetailHeader-detailsList-item p:contains('Contrato')",
+                ".contract-type",
+                ".job-contract",
+                ".ij-OfferDetailHeader-descriptionList-item:has(svg[width='16'][height='16'] path[d*='M10.973 14.834'])",
+                ".ij-OfferDetailHeader-descriptionList-item:has(svg path[d*='M10.973 14.834'])",
+                ".ij-OfferDetailHeader-descriptionList-item p:contains('Contrato')",
+                "p:contains('Contrato')",
+                "span:contains('Contrato')",
+                "div:contains('Contrato')"
+            ]
+            
+            for selector in contract_selectors:
+                contract_elem = page_soup.select_one(selector)
+                if contract_elem:
+                    # Intentar obtener solo el texto del párrafo dentro del elemento
+                    p_elem = contract_elem.select_one("p")
+                    if p_elem:
+                        contract_type = p_elem.text.strip()
+                    else:
+                        contract_type = contract_elem.text.strip()
+                    break
+            
+            # Si no se encontraron los detalles, intentar una segunda vez con un tiempo de espera más largo
+            if not any([salary, work_mode, min_experience, contract_type]):
+                logger.info("No se encontraron detalles en el primer intento, reintentando...")
+                self.random_sleep(0.5, 1)  # Reducir el tiempo de espera en el segundo intento
+                
+                # Obtener el HTML actualizado
+                page_html = self.driver.page_source
+                page_soup = BeautifulSoup(page_html, 'html.parser')
+                
+                # Intentar extraer los detalles nuevamente
+                for selector in salary_selectors:
+                    salary_elem = page_soup.select_one(selector)
+                    if salary_elem:
+                        salary = salary_elem.text.strip()
+                        break
+                
+                for selector in work_mode_selectors:
+                    work_mode_elem = page_soup.select_one(selector)
+                    if work_mode_elem:
+                        p_elem = work_mode_elem.select_one("p")
+                        if p_elem:
+                            work_mode = p_elem.text.strip()
+                        else:
+                            work_mode = work_mode_elem.text.strip()
+                        break
+                
+                for selector in experience_selectors:
+                    experience_elem = page_soup.select_one(selector)
+                    if experience_elem:
+                        p_elem = experience_elem.select_one("p")
+                        if p_elem:
+                            min_experience = p_elem.text.strip()
+                        else:
+                            min_experience = experience_elem.text.strip()
+                        break
+                
+                for selector in contract_selectors:
+                    contract_elem = page_soup.select_one(selector)
+                    if contract_elem:
+                        p_elem = contract_elem.select_one("p")
+                        if p_elem:
+                            contract_type = p_elem.text.strip()
+                        else:
+                            contract_type = contract_elem.text.strip()
+                        break
+            
+            logger.info(f"Detalles extraídos - Salario: {salary}, Modo: {work_mode}, Exp: {min_experience}, Contrato: {contract_type}")
+            
+            return {
+                'salary': salary,
+                'work_mode': work_mode,
+                'min_experience': min_experience,
+                'contract_type': contract_type
+            }
+            
+        except Exception as e:
+            logger.error(f"Error extrayendo detalles de la oferta: {str(e)}")
+            return {}
+
     def search_jobs(self, keywords, location="0"):
         try:
             # Obtener el nombre de la ubicación del mapeo
@@ -710,6 +896,9 @@ class InfoJobsScraper:
                     logger.info(f"Título: {title}")
                     logger.info(f"URL: {url}")
                     
+                    # Extraer detalles adicionales de la oferta
+                    details = self.extract_job_details(url)
+                    
                     # Extraer empresa
                     company_selectors = [
                         ".ij-OfferCardContent-description-subtitle-link, .ij-OfferCardContent-subtitle-link",
@@ -773,7 +962,11 @@ class InfoJobsScraper:
                         source='InfoJobs',
                         search_keywords=keywords,
                         search_location=location_name,
-                        published_date=published_date
+                        published_date=published_date,
+                        salary=details.get('salary', ''),
+                        work_mode=details.get('work_mode', ''),
+                        min_experience=details.get('min_experience', ''),
+                        contract_type=details.get('contract_type', '')
                     )
                     jobs.append(job)
                 except Exception as e:
@@ -784,6 +977,23 @@ class InfoJobsScraper:
             if jobs:
                 JobOffer.objects.bulk_create(jobs)
                 logger.info(f"Se guardaron {len(jobs)} ofertas en la base de datos")
+                
+                # Volver a intentar extraer los detalles de la primera oferta
+                if len(jobs) > 0:
+                    logger.info("Volviendo a intentar extraer los detalles de la primera oferta...")
+                    first_job = jobs[0]
+                    first_job_details = self.extract_job_details(first_job.url)
+                    
+                    if first_job_details:
+                        # Actualizar los detalles de la primera oferta
+                        first_job.salary = first_job_details.get('salary', first_job.salary)
+                        first_job.work_mode = first_job_details.get('work_mode', first_job.work_mode)
+                        first_job.min_experience = first_job_details.get('min_experience', first_job.min_experience)
+                        first_job.contract_type = first_job_details.get('contract_type', first_job.contract_type)
+                        first_job.save()
+                        logger.info("Detalles de la primera oferta actualizados correctamente")
+                    else:
+                        logger.warning("No se pudieron extraer los detalles de la primera oferta en el segundo intento")
             else:
                 logger.warning("No se guardaron ofertas en la base de datos")
             

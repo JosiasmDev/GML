@@ -9,11 +9,15 @@ class JobOffer(models.Model):
     salary = models.CharField(max_length=100, blank=True, verbose_name="Salario")
     location = models.CharField(max_length=100, verbose_name="Ubicación")
     source = models.CharField(max_length=50, verbose_name="Fuente")
-    created_at = models.DateTimeField(default=timezone.now, verbose_name="Fecha de creación")
-    published_date = models.CharField(max_length=50, blank=True, verbose_name="Fecha de publicación")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Fecha de creación")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Fecha de actualización")
+    published_date = models.CharField(max_length=100, blank=True, verbose_name="Fecha de publicación")
     is_favorite = models.BooleanField(default=False, verbose_name="Favorito")
     search_keywords = models.CharField(max_length=200, verbose_name="Palabras clave de búsqueda")
     search_location = models.CharField(max_length=100, verbose_name="Ubicación de búsqueda")
+    work_mode = models.CharField(max_length=100, blank=True, verbose_name="Modo de trabajo")
+    min_experience = models.CharField(max_length=100, blank=True, verbose_name="Experiencia mínima")
+    contract_type = models.CharField(max_length=100, blank=True, verbose_name="Tipo de contrato")
 
     class Meta:
         ordering = ['-created_at']
@@ -21,7 +25,7 @@ class JobOffer(models.Model):
         verbose_name_plural = "Ofertas de trabajo"
 
     def __str__(self):
-        return f"{self.title} - {self.company}"
+        return f"{self.title} - {self.company} - {self.location}"
 
 class SearchHistory(models.Model):
     keywords = models.CharField(max_length=200, verbose_name="Palabras clave")
