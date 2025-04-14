@@ -122,6 +122,9 @@
                 <span class="badge bg-primary">{{ total_jobs }} ofertas</span>
             </div>
             <div class="card-body">
+                <div class="alert alert-info">
+                    Mostrando {{ jobs.start_index }} a {{ jobs.end_index }} de {{ total_jobs }} ofertas
+                </div>
                 <div id="jobsList">
                     <table class="table">
                         <thead>
@@ -136,6 +139,8 @@
                                 <th>Estudios</th>
                                 <th>Idiomas</th>
                                 <th>Conocimientos</th>
+                                <th>Vacantes</th>
+                                <th>Inscritos</th>
                                 <th>Fecha</th>
                                 <th>Acciones</th>
                             </tr>
@@ -153,7 +158,9 @@
                                 <td>{{ job.studies|default:"No especificado" }}</td>
                                 <td>{{ job.languages|default:"No especificado" }}</td>
                                 <td>{{ job.required_skills|default:"No especificado"|truncatechars:30 }}</td>
-                                <td>{{ job.published_date|default:"No especificado" }}</td>
+                                <td>{{ job.vacantes|default:"No especificado" }}</td>
+                                <td>{{ job.inscritos|default:"No especificado" }}</td>
+                                <td>{{ job.publication_date|default:"No especificado" }}</td>
                                 <td>
                                     <a href="{% url 'jobs:job_detail' job.id %}" class="btn btn-sm btn-info me-1" title="Ver detalles">
                                         <i class="fas fa-eye"></i>

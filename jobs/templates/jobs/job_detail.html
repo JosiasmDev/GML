@@ -41,8 +41,16 @@
                                     <td>{{ job.contract_type|default:"No especificado" }}</td>
                                 </tr>
                                 <tr>
+                                    <th>Vacantes</th>
+                                    <td>{{ job.vacantes|default:"No especificado" }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Inscritos</th>
+                                    <td>{{ job.inscritos|default:"No especificado" }}</td>
+                                </tr>
+                                <tr>
                                     <th>Fecha de publicación</th>
-                                    <td>{{ job.published_date|default:"No especificado" }}</td>
+                                    <td>{{ job.publication_date|default:"No especificado" }}</td>
                                 </tr>
                             </table>
                         </div>

@@ -15,10 +15,12 @@ class JobOffer(models.Model):
     languages = models.CharField(max_length=255, blank=True)
     required_skills = models.TextField(blank=True)
     description = models.TextField(blank=True)
-    publication_date = models.DateTimeField(null=True, blank=True)
+    publication_date = models.CharField(max_length=100, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     search_history = models.ForeignKey('SearchHistory', on_delete=models.CASCADE, related_name='job_offers', null=True, blank=True)
+    vacantes = models.CharField(max_length=50, blank=True, verbose_name="Número de vacantes")
+    inscritos = models.CharField(max_length=50, blank=True, verbose_name="Número de inscritos")
     
     class Meta:
         ordering = ['-created_at']

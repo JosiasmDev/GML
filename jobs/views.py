@@ -10,8 +10,11 @@ def dashboard(request):
     jobs = JobOffer.objects.all().order_by('-created_at')
     search_history = SearchHistory.objects.all().order_by('-created_at')[:5]
     
-    # Paginación
-    paginator = Paginator(jobs, 10)
+    # Añadir log para verificar el número de ofertas
+    print(f"Total de ofertas en la base de datos: {jobs.count()}")
+    
+    # Paginación - aumentar a 20 ofertas por página
+    paginator = Paginator(jobs, 20)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
