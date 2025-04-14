@@ -1,0 +1,88 @@
+{% extends 'jobs/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="card-title mb-0">{{ job.title }}</h4>
+                    <a href="{{ job.url }}" target="_blank" class="btn btn-primary">
+                        <i class="fas fa-external-link-alt"></i> Ver en InfoJobs
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h5>Información básica</h5>
+                            <table class="table table-bordered">
+                                <tr>
+                                    <th>Empresa</th>
+                                    <td>{{ job.company }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Ubicación</th>
+                                    <td>{{ job.location }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Salario</th>
+                                    <td>{{ job.salary|default:"No especificado" }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Modo de trabajo</th>
+                                    <td>{{ job.work_mode|default:"No especificado" }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Experiencia mínima</th>
+                                    <td>{{ job.min_experience|default:"No especificado" }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Tipo de contrato</th>
+                                    <td>{{ job.contract_type|default:"No especificado" }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Fecha de publicación</th>
+                                    <td>{{ job.published_date|default:"No especificado" }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Requisitos</h5>
+                            <table class="table table-bordered">
+                                <tr>
+                                    <th>Estudios mínimos</th>
+                                    <td>{{ job.studies|default:"No especificado" }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Idiomas requeridos</th>
+                                    <td>{{ job.languages|default:"No especificado" }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Conocimientos necesarios</th>
+                                    <td>{{ job.required_skills|default:"No especificado"|linebreaks }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-12">
+                            <h5>Descripción</h5>
+                            <div class="card">
+                                <div class="card-body">
+                                    {{ job.description|default:"No hay descripción disponible"|linebreaks }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a href="{% url 'jobs:dashboard' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Volver al dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -3,8 +3,8 @@ from .models import JobOffer, SearchHistory
 
 @admin.register(JobOffer)
 class JobOfferAdmin(admin.ModelAdmin):
-    list_display = ('title', 'company', 'location', 'source', 'created_at', 'is_favorite')
-    list_filter = ('source', 'is_favorite', 'created_at')
+    list_display = ('title', 'company', 'location', 'created_at')
+    list_filter = ('created_at',)
     search_fields = ('title', 'company', 'description')
     ordering = ('-created_at',)
     date_hierarchy = 'created_at'

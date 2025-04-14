@@ -2,28 +2,27 @@ from django.db import models
 from django.utils import timezone
 
 class JobOffer(models.Model):
-    title = models.CharField(max_length=200, verbose_name="Título")
-    company = models.CharField(max_length=200, verbose_name="Empresa")
-    url = models.URLField(verbose_name="URL de la oferta")
-    description = models.TextField(blank=True, verbose_name="Descripción")
-    salary = models.CharField(max_length=100, blank=True, verbose_name="Salario")
-    location = models.CharField(max_length=100, verbose_name="Ubicación")
-    source = models.CharField(max_length=50, verbose_name="Fuente")
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Fecha de creación")
-    updated_at = models.DateTimeField(auto_now=True, verbose_name="Fecha de actualización")
-    published_date = models.CharField(max_length=100, blank=True, verbose_name="Fecha de publicación")
-    is_favorite = models.BooleanField(default=False, verbose_name="Favorito")
-    search_keywords = models.CharField(max_length=200, verbose_name="Palabras clave de búsqueda")
-    search_location = models.CharField(max_length=100, verbose_name="Ubicación de búsqueda")
-    work_mode = models.CharField(max_length=100, blank=True, verbose_name="Modo de trabajo")
-    min_experience = models.CharField(max_length=100, blank=True, verbose_name="Experiencia mínima")
-    contract_type = models.CharField(max_length=100, blank=True, verbose_name="Tipo de contrato")
-
+    """Modelo para almacenar ofertas de trabajo"""
+    title = models.CharField(max_length=255)
+    company = models.CharField(max_length=255)
+    location = models.CharField(max_length=255)
+    url = models.URLField(unique=True)
+    salary = models.CharField(max_length=255, blank=True)
+    work_mode = models.CharField(max_length=100, blank=True)
+    min_experience = models.CharField(max_length=255, blank=True)
+    contract_type = models.CharField(max_length=255, blank=True)
+    studies = models.CharField(max_length=255, blank=True)
+    languages = models.CharField(max_length=255, blank=True)
+    required_skills = models.TextField(blank=True)
+    description = models.TextField(blank=True)
+    publication_date = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    search_history = models.ForeignKey('SearchHistory', on_delete=models.CASCADE, related_name='job_offers', null=True, blank=True)
+    
     class Meta:
         ordering = ['-created_at']
-        verbose_name = "Oferta de trabajo"
-        verbose_name_plural = "Ofertas de trabajo"
-
+        
     def __str__(self):
         return f"{self.title} - {self.company} - {self.location}"
 

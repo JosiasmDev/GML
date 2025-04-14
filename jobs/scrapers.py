@@ -347,8 +347,60 @@ class InfoJobsScraper:
                         contract_type = contract_elem.text.strip()
                     break
             
+            # Extraer estudios mínimos
+            studies = ""
+            studies_selectors = [
+                "dt:contains('Estudios mínimos') + dd p",
+                "dt:contains('Estudios mínimos') + dd",
+                "h3:contains('Requisitos') + dl dt:contains('Estudios mínimos') + dd p",
+                "h3:contains('Requisitos') + dl dt:contains('Estudios mínimos') + dd"
+            ]
+            
+            for selector in studies_selectors:
+                studies_elem = page_soup.select_one(selector)
+                if studies_elem:
+                    studies = studies_elem.text.strip()
+                    break
+            
+            # Extraer idiomas requeridos
+            languages = ""
+            languages_selectors = [
+                "dt:contains('Idiomas requeridos') + dd ul li p",
+                "dt:contains('Idiomas requeridos') + dd ul li",
+                "dt:contains('Idiomas requeridos') + dd",
+                "h3:contains('Requisitos') + dl dt:contains('Idiomas requeridos') + dd ul li p",
+                "h3:contains('Requisitos') + dl dt:contains('Idiomas requeridos') + dd ul li",
+                "h3:contains('Requisitos') + dl dt:contains('Idiomas requeridos') + dd"
+            ]
+            
+            for selector in languages_selectors:
+                languages_elem = page_soup.select_one(selector)
+                if languages_elem:
+                    languages = languages_elem.text.strip()
+                    break
+            
+            # Extraer conocimientos necesarios
+            required_skills = ""
+            skills_selectors = [
+                "dt:contains('Conocimientos necesarios') + dd .ij-OfferDetailRequirements-requiredSkills",
+                "dt:contains('Conocimientos necesarios') + dd",
+                "h3:contains('Requisitos') + dl dt:contains('Conocimientos necesarios') + dd .ij-OfferDetailRequirements-requiredSkills",
+                "h3:contains('Requisitos') + dl dt:contains('Conocimientos necesarios') + dd"
+            ]
+            
+            for selector in skills_selectors:
+                skills_elem = page_soup.select_one(selector)
+                if skills_elem:
+                    # Extraer todos los tags de habilidades
+                    skill_tags = skills_elem.select(".sui-AtomTag-label")
+                    if skill_tags:
+                        required_skills = ", ".join([tag.text.strip() for tag in skill_tags])
+                    else:
+                        required_skills = skills_elem.text.strip()
+                    break
+            
             # Si no se encontraron los detalles, intentar una segunda vez con un tiempo de espera más largo
-            if not any([salary, work_mode, min_experience, contract_type]):
+            if not any([salary, work_mode, min_experience, contract_type, studies, languages, required_skills]):
                 logger.info("No se encontraron detalles en el primer intento, reintentando...")
                 self.random_sleep(0.5, 1)  # Reducir el tiempo de espera en el segundo intento
                 
@@ -392,14 +444,40 @@ class InfoJobsScraper:
                         else:
                             contract_type = contract_elem.text.strip()
                         break
+                
+                for selector in studies_selectors:
+                    studies_elem = page_soup.select_one(selector)
+                    if studies_elem:
+                        studies = studies_elem.text.strip()
+                        break
+                
+                for selector in languages_selectors:
+                    languages_elem = page_soup.select_one(selector)
+                    if languages_elem:
+                        languages = languages_elem.text.strip()
+                        break
+                
+                for selector in skills_selectors:
+                    skills_elem = page_soup.select_one(selector)
+                    if skills_elem:
+                        # Extraer todos los tags de habilidades
+                        skill_tags = skills_elem.select(".sui-AtomTag-label")
+                        if skill_tags:
+                            required_skills = ", ".join([tag.text.strip() for tag in skill_tags])
+                        else:
+                            required_skills = skills_elem.text.strip()
+                        break
             
-            logger.info(f"Detalles extraídos - Salario: {salary}, Modo: {work_mode}, Exp: {min_experience}, Contrato: {contract_type}")
+            logger.info(f"Detalles extraídos - Salario: {salary}, Modo: {work_mode}, Exp: {min_experience}, Contrato: {contract_type}, Estudios: {studies}, Idiomas: {languages}, Habilidades: {required_skills}")
             
             return {
                 'salary': salary,
                 'work_mode': work_mode,
                 'min_experience': min_experience,
-                'contract_type': contract_type
+                'contract_type': contract_type,
+                'studies': studies,
+                'languages': languages,
+                'required_skills': required_skills
             }
             
         except Exception as e:
@@ -959,14 +1037,14 @@ class InfoJobsScraper:
                         company=company,
                         url=url,
                         location=job_location,
-                        source='InfoJobs',
-                        search_keywords=keywords,
-                        search_location=location_name,
-                        published_date=published_date,
                         salary=details.get('salary', ''),
                         work_mode=details.get('work_mode', ''),
                         min_experience=details.get('min_experience', ''),
-                        contract_type=details.get('contract_type', '')
+                        contract_type=details.get('contract_type', ''),
+                        studies=details.get('studies', ''),
+                        languages=details.get('languages', ''),
+                        required_skills=details.get('required_skills', ''),
+                        search_history=search_history
                     )
                     jobs.append(job)
                 except Exception as e:
@@ -990,6 +1068,9 @@ class InfoJobsScraper:
                         first_job.work_mode = first_job_details.get('work_mode', first_job.work_mode)
                         first_job.min_experience = first_job_details.get('min_experience', first_job.min_experience)
                         first_job.contract_type = first_job_details.get('contract_type', first_job.contract_type)
+                        first_job.studies = first_job_details.get('studies', first_job.studies)
+                        first_job.languages = first_job_details.get('languages', first_job.languages)
+                        first_job.required_skills = first_job_details.get('required_skills', first_job.required_skills)
                         first_job.save()
                         logger.info("Detalles de la primera oferta actualizados correctamente")
                     else:

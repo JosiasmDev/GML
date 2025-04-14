@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.core.paginator import Paginator
@@ -21,6 +21,13 @@ def dashboard(request):
         'total_jobs': jobs.count(),
     }
     return render(request, 'jobs/dashboard.html', context)
+
+def job_detail(request, job_id):
+    job = get_object_or_404(JobOffer, id=job_id)
+    context = {
+        'job': job
+    }
+    return render(request, 'jobs/job_detail.html', context)
 
 def under_construction(request, portal_name):
     context = {

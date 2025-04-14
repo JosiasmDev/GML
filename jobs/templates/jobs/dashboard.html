@@ -133,6 +133,9 @@
                                 <th>Modo de trabajo</th>
                                 <th>Experiencia</th>
                                 <th>Tipo de contrato</th>
+                                <th>Estudios</th>
+                                <th>Idiomas</th>
+                                <th>Conocimientos</th>
                                 <th>Fecha</th>
                                 <th>Acciones</th>
                             </tr>
@@ -147,16 +150,22 @@
                                 <td>{{ job.work_mode|default:"No especificado" }}</td>
                                 <td>{{ job.min_experience|default:"No especificado" }}</td>
                                 <td>{{ job.contract_type|default:"No especificado" }}</td>
+                                <td>{{ job.studies|default:"No especificado" }}</td>
+                                <td>{{ job.languages|default:"No especificado" }}</td>
+                                <td>{{ job.required_skills|default:"No especificado"|truncatechars:30 }}</td>
                                 <td>{{ job.published_date|default:"No especificado" }}</td>
                                 <td>
-                                    <a href="{{ job.url }}" target="_blank" class="btn btn-sm btn-primary">
+                                    <a href="{% url 'jobs:job_detail' job.id %}" class="btn btn-sm btn-info me-1" title="Ver detalles">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{{ job.url }}" target="_blank" class="btn btn-sm btn-primary" title="Ver en InfoJobs">
                                         <i class="fas fa-external-link-alt"></i>
                                     </a>
                                 </td>
                             </tr>
                             {% empty %}
                             <tr>
-                                <td colspan="9" class="text-center">No hay ofertas de trabajo disponibles</td>
+                                <td colspan="12" class="text-center">No hay ofertas de trabajo disponibles</td>
                             </tr>
                             {% endfor %}
                         </tbody>
