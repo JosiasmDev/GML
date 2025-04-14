@@ -7,22 +7,66 @@ from .scrapers import InfoJobsScraper
 import json
 
 def dashboard(request):
-    jobs = JobOffer.objects.all().order_by('-created_at')
-    search_history = SearchHistory.objects.all().order_by('-created_at')[:5]
+    # Obtener parámetros de filtrado y ordenación
+    filter_by = request.GET.get('filter_by', '')
+    filter_value = request.GET.get('filter_value', '')
+    order_by = request.GET.get('order_by', '-created_at')
     
-    # Añadir log para verificar el número de ofertas
-    print(f"Total de ofertas en la base de datos: {jobs.count()}")
+    # Obtener todas las ofertas de trabajo
+    jobs = JobOffer.objects.all()
     
-    # Paginación - aumentar a 20 ofertas por página
-    paginator = Paginator(jobs, 20)
+    # Aplicar filtros
+    if filter_by and filter_value:
+        if filter_by == 'salary':
+            jobs = jobs.filter(salary__icontains=filter_value)
+        elif filter_by == 'work_mode':
+            jobs = jobs.filter(work_mode__icontains=filter_value)
+        elif filter_by == 'min_experience':
+            jobs = jobs.filter(min_experience__icontains=filter_value)
+        elif filter_by == 'contract_type':
+            jobs = jobs.filter(contract_type__icontains=filter_value)
+        elif filter_by == 'title':
+            jobs = jobs.filter(title__icontains=filter_value)
+        elif filter_by == 'company':
+            jobs = jobs.filter(company__icontains=filter_value)
+        elif filter_by == 'location':
+            jobs = jobs.filter(location__icontains=filter_value)
+        elif filter_by == 'studies':
+            jobs = jobs.filter(studies__icontains=filter_value)
+        elif filter_by == 'languages':
+            jobs = jobs.filter(languages__icontains=filter_value)
+        elif filter_by == 'required_skills':
+            jobs = jobs.filter(required_skills__icontains=filter_value)
+    
+    # Aplicar ordenación
+    jobs = jobs.order_by(order_by)
+    
+    # Paginar los resultados
+    paginator = Paginator(jobs, 20)  # Mostrar 20 ofertas por página
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
+    # Obtener el total de ofertas
+    total_jobs = jobs.count()
+    
+    # Obtener valores únicos para los filtros
+    unique_values = {
+        'work_mode': JobOffer.objects.values_list('work_mode', flat=True).distinct(),
+        'contract_type': JobOffer.objects.values_list('contract_type', flat=True).distinct(),
+        'min_experience': JobOffer.objects.values_list('min_experience', flat=True).distinct(),
+        'studies': JobOffer.objects.values_list('studies', flat=True).distinct(),
+        'languages': JobOffer.objects.values_list('languages', flat=True).distinct(),
+    }
+    
     context = {
         'jobs': page_obj,
-        'search_history': search_history,
-        'total_jobs': jobs.count(),
+        'total_jobs': total_jobs,
+        'filter_by': filter_by,
+        'filter_value': filter_value,
+        'order_by': order_by,
+        'unique_values': unique_values,
     }
+    
     return render(request, 'jobs/dashboard.html', context)
 
 def job_detail(request, job_id):

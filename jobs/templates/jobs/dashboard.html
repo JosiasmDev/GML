@@ -125,20 +125,276 @@
                 <div class="alert alert-info">
                     Mostrando {{ jobs.start_index }} a {{ jobs.end_index }} de {{ total_jobs }} ofertas
                 </div>
+                
+                <!-- Filtros y Ordenación -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">Filtros y Ordenación</h5>
+                        <form method="get" action="{% url 'jobs:dashboard' %}" id="filterForm">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="filter_by">Filtrar por:</label>
+                                        <select name="filter_by" id="filter_by" class="form-control">
+                                            <option value="">Ninguno</option>
+                                            <option value="salary" {% if filter_by == 'salary' %}selected{% endif %}>Salario</option>
+                                            <option value="work_mode" {% if filter_by == 'work_mode' %}selected{% endif %}>Modo de trabajo</option>
+                                            <option value="min_experience" {% if filter_by == 'min_experience' %}selected{% endif %}>Experiencia mínima</option>
+                                            <option value="contract_type" {% if filter_by == 'contract_type' %}selected{% endif %}>Tipo de contrato</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="order_by">Ordenar por:</label>
+                                        <select name="order_by" id="order_by" class="form-control">
+                                            <option value="-created_at" {% if order_by == '-created_at' %}selected{% endif %}>Fecha de creación (más reciente)</option>
+                                            <option value="created_at" {% if order_by == 'created_at' %}selected{% endif %}>Fecha de creación (más antigua)</option>
+                                            <option value="title" {% if order_by == 'title' %}selected{% endif %}>Título</option>
+                                            <option value="company" {% if order_by == 'company' %}selected{% endif %}>Empresa</option>
+                                            <option value="salary" {% if order_by == 'salary' %}selected{% endif %}>Salario</option>
+                                            <option value="work_mode" {% if order_by == 'work_mode' %}selected{% endif %}>Modo de trabajo</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-3">
+                                <button type="submit" class="btn btn-primary">Aplicar</button>
+                                <a href="{% url 'jobs:dashboard' %}" class="btn btn-secondary">Resetear</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                
                 <div id="jobsList">
                     <table class="table">
                         <thead>
                             <tr>
-                                <th>Título</th>
-                                <th>Empresa</th>
-                                <th>Ubicación</th>
-                                <th>Salario</th>
-                                <th>Modo de trabajo</th>
-                                <th>Experiencia</th>
-                                <th>Tipo de contrato</th>
-                                <th>Estudios</th>
-                                <th>Idiomas</th>
-                                <th>Conocimientos</th>
+                                <th>
+                                    <div class="d-flex flex-column">
+                                        <span>Título</span>
+                                        <div class="btn-group btn-group-sm">
+                                            <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                                <i class="fas fa-filter"></i>
+                                            </button>
+                                            <div class="dropdown-menu p-2">
+                                                <input type="text" class="form-control form-control-sm mb-2" id="filter_title" placeholder="Filtrar título...">
+                                                <button class="btn btn-primary btn-sm w-100" onclick="applyFilter('title')">Aplicar</button>
+                                            </div>
+                                        </div>
+                                        <div class="btn-group btn-group-sm mt-1">
+                                            <button class="btn btn-outline-secondary" onclick="sortTable('title')">
+                                                <i class="fas fa-sort"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </th>
+                                <th>
+                                    <div class="d-flex flex-column">
+                                        <span>Empresa</span>
+                                        <div class="btn-group btn-group-sm">
+                                            <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                                <i class="fas fa-filter"></i>
+                                            </button>
+                                            <div class="dropdown-menu p-2">
+                                                <input type="text" class="form-control form-control-sm mb-2" id="filter_company" placeholder="Filtrar empresa...">
+                                                <button class="btn btn-primary btn-sm w-100" onclick="applyFilter('company')">Aplicar</button>
+                                            </div>
+                                        </div>
+                                        <div class="btn-group btn-group-sm mt-1">
+                                            <button class="btn btn-outline-secondary" onclick="sortTable('company')">
+                                                <i class="fas fa-sort"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </th>
+                                <th>
+                                    <div class="d-flex flex-column">
+                                        <span>Ubicación</span>
+                                        <div class="btn-group btn-group-sm">
+                                            <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                                <i class="fas fa-filter"></i>
+                                            </button>
+                                            <div class="dropdown-menu p-2">
+                                                <input type="text" class="form-control form-control-sm mb-2" id="filter_location" placeholder="Filtrar ubicación...">
+                                                <button class="btn btn-primary btn-sm w-100" onclick="applyFilter('location')">Aplicar</button>
+                                            </div>
+                                        </div>
+                                        <div class="btn-group btn-group-sm mt-1">
+                                            <button class="btn btn-outline-secondary" onclick="sortTable('location')">
+                                                <i class="fas fa-sort"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </th>
+                                <th>
+                                    <div class="d-flex flex-column">
+                                        <span>Salario</span>
+                                        <div class="btn-group btn-group-sm">
+                                            <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                                <i class="fas fa-filter"></i>
+                                            </button>
+                                            <div class="dropdown-menu p-2">
+                                                <input type="text" class="form-control form-control-sm mb-2" id="filter_salary" placeholder="Filtrar salario...">
+                                                <button class="btn btn-primary btn-sm w-100" onclick="applyFilter('salary')">Aplicar</button>
+                                            </div>
+                                        </div>
+                                        <div class="btn-group btn-group-sm mt-1">
+                                            <button class="btn btn-outline-secondary" onclick="sortTable('salary')">
+                                                <i class="fas fa-sort"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </th>
+                                <th>
+                                    <div class="d-flex flex-column">
+                                        <span>Modo de trabajo</span>
+                                        <div class="btn-group btn-group-sm">
+                                            <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                                <i class="fas fa-filter"></i>
+                                            </button>
+                                            <div class="dropdown-menu p-2">
+                                                <select class="form-select form-select-sm mb-2" id="filter_work_mode">
+                                                    <option value="">Todos</option>
+                                                    {% for value in unique_values.work_mode %}
+                                                        {% if value %}
+                                                            <option value="{{ value }}">{{ value }}</option>
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                </select>
+                                                <button class="btn btn-primary btn-sm w-100" onclick="applyFilter('work_mode')">Aplicar</button>
+                                            </div>
+                                        </div>
+                                        <div class="btn-group btn-group-sm mt-1">
+                                            <button class="btn btn-outline-secondary" onclick="sortTable('work_mode')">
+                                                <i class="fas fa-sort"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </th>
+                                <th>
+                                    <div class="d-flex flex-column">
+                                        <span>Experiencia</span>
+                                        <div class="btn-group btn-group-sm">
+                                            <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                                <i class="fas fa-filter"></i>
+                                            </button>
+                                            <div class="dropdown-menu p-2">
+                                                <select class="form-select form-select-sm mb-2" id="filter_min_experience">
+                                                    <option value="">Todos</option>
+                                                    {% for value in unique_values.min_experience %}
+                                                        {% if value %}
+                                                            <option value="{{ value }}">{{ value }}</option>
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                </select>
+                                                <button class="btn btn-primary btn-sm w-100" onclick="applyFilter('min_experience')">Aplicar</button>
+                                            </div>
+                                        </div>
+                                        <div class="btn-group btn-group-sm mt-1">
+                                            <button class="btn btn-outline-secondary" onclick="sortTable('min_experience')">
+                                                <i class="fas fa-sort"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </th>
+                                <th>
+                                    <div class="d-flex flex-column">
+                                        <span>Tipo de contrato</span>
+                                        <div class="btn-group btn-group-sm">
+                                            <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                                <i class="fas fa-filter"></i>
+                                            </button>
+                                            <div class="dropdown-menu p-2">
+                                                <select class="form-select form-select-sm mb-2" id="filter_contract_type">
+                                                    <option value="">Todos</option>
+                                                    {% for value in unique_values.contract_type %}
+                                                        {% if value %}
+                                                            <option value="{{ value }}">{{ value }}</option>
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                </select>
+                                                <button class="btn btn-primary btn-sm w-100" onclick="applyFilter('contract_type')">Aplicar</button>
+                                            </div>
+                                        </div>
+                                        <div class="btn-group btn-group-sm mt-1">
+                                            <button class="btn btn-outline-secondary" onclick="sortTable('contract_type')">
+                                                <i class="fas fa-sort"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </th>
+                                <th>
+                                    <div class="d-flex flex-column">
+                                        <span>Estudios</span>
+                                        <div class="btn-group btn-group-sm">
+                                            <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                                <i class="fas fa-filter"></i>
+                                            </button>
+                                            <div class="dropdown-menu p-2">
+                                                <select class="form-select form-select-sm mb-2" id="filter_studies">
+                                                    <option value="">Todos</option>
+                                                    {% for value in unique_values.studies %}
+                                                        {% if value %}
+                                                            <option value="{{ value }}">{{ value }}</option>
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                </select>
+                                                <button class="btn btn-primary btn-sm w-100" onclick="applyFilter('studies')">Aplicar</button>
+                                            </div>
+                                        </div>
+                                        <div class="btn-group btn-group-sm mt-1">
+                                            <button class="btn btn-outline-secondary" onclick="sortTable('studies')">
+                                                <i class="fas fa-sort"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </th>
+                                <th>
+                                    <div class="d-flex flex-column">
+                                        <span>Idiomas</span>
+                                        <div class="btn-group btn-group-sm">
+                                            <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                                <i class="fas fa-filter"></i>
+                                            </button>
+                                            <div class="dropdown-menu p-2">
+                                                <select class="form-select form-select-sm mb-2" id="filter_languages">
+                                                    <option value="">Todos</option>
+                                                    {% for value in unique_values.languages %}
+                                                        {% if value %}
+                                                            <option value="{{ value }}">{{ value }}</option>
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                </select>
+                                                <button class="btn btn-primary btn-sm w-100" onclick="applyFilter('languages')">Aplicar</button>
+                                            </div>
+                                        </div>
+                                        <div class="btn-group btn-group-sm mt-1">
+                                            <button class="btn btn-outline-secondary" onclick="sortTable('languages')">
+                                                <i class="fas fa-sort"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </th>
+                                <th>
+                                    <div class="d-flex flex-column">
+                                        <span>Conocimientos</span>
+                                        <div class="btn-group btn-group-sm">
+                                            <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                                <i class="fas fa-filter"></i>
+                                            </button>
+                                            <div class="dropdown-menu p-2">
+                                                <input type="text" class="form-control form-control-sm mb-2" id="filter_required_skills" placeholder="Filtrar conocimientos...">
+                                                <button class="btn btn-primary btn-sm w-100" onclick="applyFilter('required_skills')">Aplicar</button>
+                                            </div>
+                                        </div>
+                                        <div class="btn-group btn-group-sm mt-1">
+                                            <button class="btn btn-outline-secondary" onclick="sortTable('required_skills')">
+                                                <i class="fas fa-sort"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </th>
                                 <th>Vacantes</th>
                                 <th>Inscritos</th>
                                 <th>Fecha</th>
@@ -172,7 +428,7 @@
                             </tr>
                             {% empty %}
                             <tr>
-                                <td colspan="12" class="text-center">No hay ofertas de trabajo disponibles</td>
+                                <td colspan="14" class="text-center">No hay ofertas de trabajo disponibles</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -185,42 +441,30 @@
                     <ul class="pagination justify-content-center">
                         {% if jobs.has_previous %}
                         <li class="page-item">
-                            <a class="page-link" href="?page={{ jobs.previous_page_number }}">Anterior</a>
+                            <a class="page-link" href="?page={{ jobs.previous_page_number }}{% if filter_by %}&filter_by={{ filter_by }}{% endif %}{% if order_by %}&order_by={{ order_by }}{% endif %}" data-page="{{ jobs.previous_page_number }}">Anterior</a>
                         </li>
                         {% endif %}
 
                         {% for num in jobs.paginator.page_range %}
-                        <li class="page-item {% if jobs.number == num %}active{% endif %}">
-                            <a class="page-link" href="?page={{ num }}">{{ num }}</a>
-                        </li>
+                            {% if num == jobs.number %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ num }}</span>
+                                </li>
+                            {% elif num > jobs.number|add:'-3' and num < jobs.number|add:'3' %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ num }}{% if filter_by %}&filter_by={{ filter_by }}{% endif %}{% if order_by %}&order_by={{ order_by }}{% endif %}" data-page="{{ num }}">{{ num }}</a>
+                                </li>
+                            {% endif %}
                         {% endfor %}
 
                         {% if jobs.has_next %}
                         <li class="page-item">
-                            <a class="page-link" href="?page={{ jobs.next_page_number }}">Siguiente</a>
+                            <a class="page-link" href="?page={{ jobs.next_page_number }}{% if filter_by %}&filter_by={{ filter_by }}{% endif %}{% if order_by %}&order_by={{ order_by }}{% endif %}" data-page="{{ jobs.next_page_number }}">Siguiente</a>
                         </li>
                         {% endif %}
                     </ul>
                 </nav>
                 {% endif %}
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="container mt-4">
-    <div class="row">
-        <div class="col-md-12">
-            <h1>Dashboard de Ofertas de Trabajo</h1>
-            <p>Total de ofertas: {{ total_jobs }}</p>
-            
-            <div class="d-flex justify-content-between mb-3">
-                <button id="searchButton" class="btn btn-primary">Buscar Ofertas</button>
-                <button id="deleteAllButton" class="btn btn-danger">Borrar Todas las Ofertas</button>
-            </div>
-            
-            <div id="searchForm" class="card mb-4" style="display: none;">
-                <!-- ... existing code ... -->
             </div>
         </div>
     </div>
@@ -370,6 +614,55 @@ $(document).ready(function() {
             });
         }
     });
+
+    // Manejar cambios en los filtros
+    $('#filter_by, #order_by').on('change', function() {
+        $('#filterForm').submit();
+    });
+
+    // Inicializar los filtros con los valores actuales
+    if ('{{ filter_by }}' && '{{ filter_value }}') {
+        $(`#filter_${'{{ filter_by }}'}`).val('{{ filter_value }}');
+    }
 });
+
+// Función para aplicar filtros
+function applyFilter(field) {
+    const value = $(`#filter_${field}`).val();
+    const currentUrl = new URL(window.location.href);
+    currentUrl.searchParams.set('filter_by', field);
+    currentUrl.searchParams.set('filter_value', value);
+    currentUrl.searchParams.set('page', '1'); // Resetear a la primera página
+    window.location.href = currentUrl.toString();
+}
+
+// Función para ordenar la tabla
+function sortTable(field) {
+    const currentUrl = new URL(window.location.href);
+    const currentOrder = currentUrl.searchParams.get('order_by');
+    
+    // Determinar el nuevo orden
+    let newOrder;
+    if (currentOrder === field) {
+        newOrder = `-${field}`; // Cambiar a orden descendente
+    } else if (currentOrder === `-${field}`) {
+        newOrder = field; // Cambiar a orden ascendente
+    } else {
+        newOrder = field; // Ordenar por primera vez
+    }
+    
+    currentUrl.searchParams.set('order_by', newOrder);
+    currentUrl.searchParams.set('page', '1'); // Resetear a la primera página
+    window.location.href = currentUrl.toString();
+}
+
+// Función para limpiar todos los filtros
+function clearFilters() {
+    const currentUrl = new URL(window.location.href);
+    currentUrl.searchParams.delete('filter_by');
+    currentUrl.searchParams.delete('filter_value');
+    currentUrl.searchParams.set('page', '1');
+    window.location.href = currentUrl.toString();
+}
 </script>
 {% endblock %} 
