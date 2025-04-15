@@ -835,10 +835,27 @@ class InfoJobsScraper:
             logger.info("Esperando a que se cargue todo el contenido...")
             self.random_sleep(5, 8)  # Aumentado el tiempo de espera
             
-            # Hacer scroll para cargar todo el contenido
-            logger.info("Haciendo scroll para cargar todo el contenido...")
+            # Hacer scroll gradual para cargar todo el contenido
+            logger.info("Haciendo scroll gradual para cargar todo el contenido...")
+            total_height = int(self.driver.execute_script("return document.body.scrollHeight"))
+            current_position = 0
+            scroll_step = 300  # Scroll de 300px cada vez
+            scroll_delay = 1  # Esperar 1 segundo entre scrolls
+            
+            while current_position < total_height:
+                # Hacer scroll
+                self.driver.execute_script(f"window.scrollTo(0, {current_position});")
+                current_position += scroll_step
+                time.sleep(scroll_delay)
+                
+                # Actualizar la altura total en caso de que se haya cargado más contenido
+                new_height = int(self.driver.execute_script("return document.body.scrollHeight"))
+                if new_height > total_height:
+                    total_height = new_height
+            
+            # Scroll final al final de la página
             self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-            self.random_sleep(2, 3)  # Esperar después del scroll
+            self.random_sleep(2, 3)  # Esperar después del scroll final
             
             # Obtener el HTML de la página
             html = self.driver.page_source
@@ -882,8 +899,24 @@ class InfoJobsScraper:
                 # Esperar a que se carguen los resultados
                 self.random_sleep(3, 5)
                 
-                # Hacer scroll para cargar todo el contenido
-                logger.info("Haciendo scroll para cargar todo el contenido...")
+                # Hacer scroll gradual en cada página
+                logger.info("Haciendo scroll gradual en la página...")
+                total_height = int(self.driver.execute_script("return document.body.scrollHeight"))
+                current_position = 0
+                scroll_step = 300
+                scroll_delay = 1
+                
+                while current_position < total_height:
+                    self.driver.execute_script(f"window.scrollTo(0, {current_position});")
+                    current_position += scroll_step
+                    time.sleep(scroll_delay)
+                    
+                    # Actualizar la altura total en caso de que se haya cargado más contenido
+                    new_height = int(self.driver.execute_script("return document.body.scrollHeight"))
+                    if new_height > total_height:
+                        total_height = new_height
+                
+                # Scroll final al final de la página
                 self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
                 self.random_sleep(2, 3)
                 
@@ -961,6 +994,7 @@ class InfoJobsScraper:
             )
             
             jobs = []
+            # Primero recopilar todas las URLs y datos básicos
             for i, card in enumerate(all_job_cards):
                 try:
                     logger.info(f"Procesando oferta {i+1}/{len(all_job_cards)}")
@@ -991,9 +1025,6 @@ class InfoJobsScraper:
                         url = 'https:' + url
                     logger.info(f"Título: {title}")
                     logger.info(f"URL: {url}")
-                    
-                    # Extraer detalles adicionales de la oferta
-                    details = self.extract_job_details(url)
                     
                     # Extraer empresa
                     company_selectors = [
@@ -1030,32 +1061,40 @@ class InfoJobsScraper:
                     job_location = location_elem.text.strip() if location_elem else location_name
                     logger.info(f"Ubicación: {job_location}")
                     
-                    # Extraer fecha de publicación
-                    published_date = details.get('published_date', '')
-                    logger.info(f"Fecha de publicación: {published_date}")
-                    
-                    logger.info(f"Oferta encontrada: {title} - {company} - {job_location}")
-                    
+                    # Crear objeto JobOffer con datos básicos
                     job = JobOffer(
                         title=title,
                         company=company,
                         url=url,
                         location=job_location,
-                        salary=details.get('salary', ''),
-                        work_mode=details.get('work_mode', ''),
-                        min_experience=details.get('min_experience', ''),
-                        contract_type=details.get('contract_type', ''),
-                        studies=details.get('studies', ''),
-                        languages=details.get('languages', ''),
-                        required_skills=details.get('required_skills', ''),
-                        vacantes=details.get('vacantes', ''),
-                        inscritos=details.get('inscritos', ''),
-                        publication_date=published_date,
                         search_history=search_history
                     )
                     jobs.append(job)
                 except Exception as e:
                     logger.error(f"Error procesando oferta: {str(e)}")
+                    continue
+            
+            # Ahora extraer los detalles de cada oferta
+            for job in jobs:
+                try:
+                    logger.info(f"Extrayendo detalles de la oferta: {job.url}")
+                    details = self.extract_job_details(job.url)
+                    
+                    # Actualizar los detalles de la oferta
+                    job.salary = details.get('salary', '')
+                    job.work_mode = details.get('work_mode', '')
+                    job.min_experience = details.get('min_experience', '')
+                    job.contract_type = details.get('contract_type', '')
+                    job.studies = details.get('studies', '')
+                    job.languages = details.get('languages', '')
+                    job.required_skills = details.get('required_skills', '')
+                    job.vacantes = details.get('vacantes', '')
+                    job.inscritos = details.get('inscritos', '')
+                    job.publication_date = details.get('published_date', '')
+                    
+                    logger.info(f"Detalles extraídos para: {job.title}")
+                except Exception as e:
+                    logger.error(f"Error extrayendo detalles de la oferta {job.url}: {str(e)}")
                     continue
             
             # Guardar todas las ofertas en la base de datos
