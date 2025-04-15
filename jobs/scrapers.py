@@ -875,61 +875,19 @@ class InfoJobsScraper:
             total_pages = (total_offers + 19) // 20
             logger.info(f"Total de páginas a procesar: {total_pages}")
             
-            # Lista para almacenar todas las ofertas
             all_job_cards = []
-            
-            # Procesar cada página
             for page in range(1, total_pages + 1):
                 logger.info(f"Procesando página {page} de {total_pages}")
                 
-                # Si no es la primera página, hacer clic en el botón "Siguiente"
-                if page > 1:
-                    # Buscar el botón "Siguiente" con diferentes selectores
-                    next_button_selectors = [
-                        "button.sui-AtomButton--primary span.sui-AtomButton-content:contains('Siguiente')",
-                        "button.sui-AtomButton span.sui-AtomButton-content:contains('Siguiente')",
-                        "button.sui-AtomButton--primary:contains('Siguiente')",
-                        "button.sui-AtomButton:contains('Siguiente')",
-                        "button:contains('Siguiente')",
-                        ".sui-MoleculePagination-item button:contains('Siguiente')",
-                        ".pagination button:contains('Siguiente')",
-                        ".next-page button",
-                        ".next button"
-                    ]
-                    
-                    next_button = None
-                    for selector in next_button_selectors:
-                        logger.info(f"Intentando selector de botón siguiente: {selector}")
-                        try:
-                            next_button = self.wait_for_clickable(selector, timeout=5)
-                            if next_button:
-                                logger.info(f"Botón siguiente encontrado con selector: {selector}")
-                                break
-                        except Exception as e:
-                            logger.info(f"No se encontró el botón siguiente con selector {selector}: {str(e)}")
-                            continue
-                    
-                    if not next_button:
-                        # Intentar encontrar el botón por texto usando XPath
-                        try:
-                            next_button = self.driver.find_element(By.XPATH, "//button[contains(., 'Siguiente')]")
-                            logger.info("Botón siguiente encontrado por texto")
-                        except NoSuchElementException:
-                            logger.error("No se encontró el botón siguiente")
-                            self.take_screenshot("next_button_not_found")
-                            break
-                    
-                    # Hacer clic en el botón "Siguiente"
-                    logger.info("Haciendo clic en el botón siguiente...")
-                    next_button.click()
-                    
-                    # Esperar a que se carguen los resultados
-                    self.random_sleep(3, 5)
+                # Esperar a que se carguen los resultados
+                self.random_sleep(3, 5)
+                
+                # Hacer scroll para cargar todo el contenido
+                logger.info("Haciendo scroll para cargar todo el contenido...")
+                self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+                self.random_sleep(2, 3)
                 
                 # Extraer todas las ofertas de la página actual usando Selenium
-                logger.info(f"Procesando página {page} de {total_pages}")
-                
-                # Intentar diferentes selectores para las ofertas
                 job_cards_selectors = [
                     ".ij-OfferCard",
                     ".ij-OfferCardContent-description, .ij-OfferCardContent",
@@ -963,6 +921,26 @@ class InfoJobsScraper:
                     except Exception as e:
                         logger.error(f"Error al procesar oferta: {str(e)}")
                         continue
+                
+                # Si no es la última página, hacer clic en el botón siguiente
+                if page < total_pages:
+                    try:
+                        # Intentar encontrar el botón siguiente
+                        next_button = self.driver.find_element(By.CSS_SELECTOR, "button[aria-label='Siguiente']")
+                        if not next_button:
+                            # Intentar encontrar el botón por texto usando XPath
+                            next_button = self.driver.find_element(By.XPATH, "//button[contains(., 'Siguiente')]")
+                            logger.info("Botón siguiente encontrado por texto")
+                        
+                        # Hacer clic en el botón "Siguiente"
+                        logger.info("Haciendo clic en el botón siguiente...")
+                        next_button.click()
+                        
+                        # Esperar a que se carguen los resultados
+                        self.random_sleep(3, 5)
+                    except Exception as e:
+                        logger.error(f"Error al navegar a la siguiente página: {str(e)}")
+                        break
             
             logger.info(f"Total de ofertas extraídas de todas las páginas: {len(all_job_cards)}")
             
@@ -1084,36 +1062,20 @@ class InfoJobsScraper:
             if jobs:
                 logger.info(f"Intentando guardar {len(jobs)} ofertas en la base de datos")
                 try:
-                    JobOffer.objects.bulk_create(jobs)
+                    # Primero intentar guardar todas las ofertas
+                    JobOffer.objects.bulk_create(jobs, ignore_conflicts=True)
                     logger.info(f"Se guardaron {len(jobs)} ofertas en la base de datos correctamente")
                 except Exception as e:
                     logger.error(f"Error al guardar ofertas en la base de datos: {str(e)}")
                     self.take_screenshot("error_saving_jobs")
-                
-                # Volver a intentar extraer los detalles de la primera oferta
-                if len(jobs) > 0:
-                    logger.info("Volviendo a intentar extraer los detalles de la primera oferta...")
-                    first_job = jobs[0]
-                    first_job_details = self.extract_job_details(first_job.url)
                     
-                    if first_job_details:
-                        # Actualizar los detalles de la primera oferta
-                        first_job.salary = first_job_details.get('salary', first_job.salary)
-                        first_job.work_mode = first_job_details.get('work_mode', first_job.work_mode)
-                        first_job.min_experience = first_job_details.get('min_experience', first_job.min_experience)
-                        first_job.contract_type = first_job_details.get('contract_type', first_job.contract_type)
-                        first_job.studies = first_job_details.get('studies', first_job.studies)
-                        first_job.languages = first_job_details.get('languages', first_job.languages)
-                        first_job.required_skills = first_job_details.get('required_skills', first_job.required_skills)
-                        first_job.vacantes = first_job_details.get('vacantes', first_job.vacantes)
-                        first_job.inscritos = first_job_details.get('inscritos', first_job.inscritos)
-                        first_job.publication_date = first_job_details.get('published_date', '')
-                        first_job.save()
-                        logger.info("Detalles de la primera oferta actualizados correctamente")
-                    else:
-                        logger.warning("No se pudieron extraer los detalles de la primera oferta en el segundo intento")
-            else:
-                logger.warning("No se guardaron ofertas en la base de datos")
+                    # Si falla el bulk_create, intentar guardar una por una
+                    for job in jobs:
+                        try:
+                            job.save(force_insert=True)
+                        except Exception as e:
+                            logger.warning(f"Oferta duplicada o error al guardar: {str(e)}")
+                            continue
             
             return {
                 'success': True,
