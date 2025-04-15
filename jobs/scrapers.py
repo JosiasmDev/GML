@@ -42,7 +42,7 @@ class InfoJobsScraper:
                 firefox_options.profile = firefox_profile
                 
                 # Configurar el servicio con la ruta específica del geckodriver
-                service = Service('/home/josias/.wdm/drivers/geckodriver/linux64/v0.36.0/geckodriver')
+                service = Service('/usr/local/bin/geckodriver')
                 
                 # Inicializar el driver con el perfil y el servicio
                 self.driver = webdriver.Firefox(service=service, options=firefox_options)
@@ -93,7 +93,7 @@ class InfoJobsScraper:
             
             try:
                 # Configurar el servicio con la ruta específica del geckodriver
-                service = Service('/home/josias/.wdm/drivers/geckodriver/linux64/v0.36.0/geckodriver')
+                service = Service('/usr/local/bin/geckodriver')
                 
                 # Inicializar el driver con el servicio
                 logger.info("Inicializando el driver de Firefox...")
