@@ -201,24 +201,23 @@ class InfoJobsScraper:
         time.sleep(random.uniform(min_seconds, max_seconds))
 
     def take_screenshot(self, name="error"):
-        """Captura una captura de pantalla para depuración"""
+        """Toma una captura de pantalla y la guarda en la carpeta screenshots"""
         try:
-            # Crear directorio para capturas de pantalla si no existe
+            # Crear directorio de screenshots si no existe
             screenshot_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'screenshots')
             if not os.path.exists(screenshot_dir):
                 os.makedirs(screenshot_dir)
             
             # Generar nombre de archivo con timestamp
-            timestamp = timezone.now().strftime("%Y%m%d_%H%M%S")
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             filename = f"{name}_{timestamp}.png"
             filepath = os.path.join(screenshot_dir, filename)
             
-            # Capturar pantalla
+            # Tomar y guardar screenshot
             self.driver.save_screenshot(filepath)
-            logger.info(f"Captura de pantalla guardada en: {filepath}")
             return filepath
         except Exception as e:
-            logger.error(f"Error al capturar pantalla: {str(e)}")
+            print(f"Error al tomar screenshot: {str(e)}")
             return None
 
     def extract_job_details(self, url):
@@ -1106,7 +1105,6 @@ class InfoJobsScraper:
                     logger.info(f"Se guardaron {len(jobs)} ofertas en la base de datos correctamente")
                 except Exception as e:
                     logger.error(f"Error al guardar ofertas en la base de datos: {str(e)}")
-                    self.take_screenshot("error_saving_jobs")
                     
                     # Si falla el bulk_create, intentar guardar una por una
                     for job in jobs:
@@ -1115,6 +1113,35 @@ class InfoJobsScraper:
                         except Exception as e:
                             logger.warning(f"Oferta duplicada o error al guardar: {str(e)}")
                             continue
+
+                # Volver a extraer la información de la primera oferta
+                if jobs:
+                    logger.info("Volviendo a extraer la información de la primera oferta...")
+                    try:
+                        # Obtener la primera oferta de la base de datos usando la URL
+                        first_job = JobOffer.objects.get(url=jobs[0].url)
+                        logger.info(f"Extrayendo detalles de la primera oferta: {first_job.url}")
+                        details = self.extract_job_details(first_job.url)
+                        
+                        # Actualizar los detalles de la oferta
+                        first_job.salary = details.get('salary', '')
+                        first_job.work_mode = details.get('work_mode', '')
+                        first_job.min_experience = details.get('min_experience', '')
+                        first_job.contract_type = details.get('contract_type', '')
+                        first_job.studies = details.get('studies', '')
+                        first_job.languages = details.get('languages', '')
+                        first_job.required_skills = details.get('required_skills', '')
+                        first_job.vacantes = details.get('vacantes', '')
+                        first_job.inscritos = details.get('inscritos', '')
+                        first_job.publication_date = details.get('published_date', '')
+                        
+                        # Guardar los cambios
+                        first_job.save()
+                        logger.info("Información de la primera oferta actualizada correctamente")
+                    except JobOffer.DoesNotExist:
+                        logger.error("No se encontró la primera oferta en la base de datos")
+                    except Exception as e:
+                        logger.error(f"Error al volver a extraer la información de la primera oferta: {str(e)}")
             
             return {
                 'success': True,
