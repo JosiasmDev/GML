@@ -141,6 +141,9 @@
                                             <option value="work_mode" {% if filter_by == 'work_mode' %}selected{% endif %}>Modo de trabajo</option>
                                             <option value="min_experience" {% if filter_by == 'min_experience' %}selected{% endif %}>Experiencia mínima</option>
                                             <option value="contract_type" {% if filter_by == 'contract_type' %}selected{% endif %}>Tipo de contrato</option>
+                                            <option value="vacantes" {% if filter_by == 'vacantes' %}selected{% endif %}>Vacantes</option>
+                                            <option value="inscritos" {% if filter_by == 'inscritos' %}selected{% endif %}>Inscritos</option>
+                                            <option value="publication_date" {% if filter_by == 'publication_date' %}selected{% endif %}>Fecha</option>
                                         </select>
                                     </div>
                                 </div>
@@ -395,9 +398,63 @@
                                         </div>
                                     </div>
                                 </th>
-                                <th>Vacantes</th>
-                                <th>Inscritos</th>
-                                <th>Fecha</th>
+                                <th>
+                                    <div class="d-flex flex-column">
+                                        <span>Vacantes</span>
+                                        <div class="btn-group btn-group-sm">
+                                            <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                                <i class="fas fa-filter"></i>
+                                            </button>
+                                            <div class="dropdown-menu p-2">
+                                                <input type="text" class="form-control form-control-sm mb-2" id="filter_vacantes" placeholder="Filtrar vacantes...">
+                                                <button class="btn btn-primary btn-sm w-100" onclick="applyFilter('vacantes')">Aplicar</button>
+                                            </div>
+                                        </div>
+                                        <div class="btn-group btn-group-sm mt-1">
+                                            <button class="btn btn-outline-secondary" onclick="sortTable('vacantes')">
+                                                <i class="fas fa-sort"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </th>
+                                <th>
+                                    <div class="d-flex flex-column">
+                                        <span>Inscritos</span>
+                                        <div class="btn-group btn-group-sm">
+                                            <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                                <i class="fas fa-filter"></i>
+                                            </button>
+                                            <div class="dropdown-menu p-2">
+                                                <input type="text" class="form-control form-control-sm mb-2" id="filter_inscritos" placeholder="Filtrar inscritos...">
+                                                <button class="btn btn-primary btn-sm w-100" onclick="applyFilter('inscritos')">Aplicar</button>
+                                            </div>
+                                        </div>
+                                        <div class="btn-group btn-group-sm mt-1">
+                                            <button class="btn btn-outline-secondary" onclick="sortTable('inscritos')">
+                                                <i class="fas fa-sort"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </th>
+                                <th>
+                                    <div class="d-flex flex-column">
+                                        <span>Fecha</span>
+                                        <div class="btn-group btn-group-sm">
+                                            <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                                <i class="fas fa-filter"></i>
+                                            </button>
+                                            <div class="dropdown-menu p-2">
+                                                <input type="text" class="form-control form-control-sm mb-2" id="filter_publication_date" placeholder="Filtrar fecha...">
+                                                <button class="btn btn-primary btn-sm w-100" onclick="applyFilter('publication_date')">Aplicar</button>
+                                            </div>
+                                        </div>
+                                        <div class="btn-group btn-group-sm mt-1">
+                                            <button class="btn btn-outline-secondary" onclick="sortTable('publication_date')">
+                                                <i class="fas fa-sort"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </th>
                                 <th>Acciones</th>
                             </tr>
                         </thead>

@@ -37,6 +37,12 @@ def dashboard(request):
             jobs = jobs.filter(languages__icontains=filter_value)
         elif filter_by == 'required_skills':
             jobs = jobs.filter(required_skills__icontains=filter_value)
+        elif filter_by == 'vacantes':
+            jobs = jobs.filter(vacantes__icontains=filter_value)
+        elif filter_by == 'inscritos':
+            jobs = jobs.filter(inscritos__icontains=filter_value)
+        elif filter_by == 'publication_date':
+            jobs = jobs.filter(publication_date__icontains=filter_value)
     
     # Aplicar ordenación
     jobs = jobs.order_by(order_by)
