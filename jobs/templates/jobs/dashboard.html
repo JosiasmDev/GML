@@ -1,88 +1,92 @@
 {% extends 'jobs/base.html' %}
 
 {% block content %}
-<div class="row">
+<div class="container-fluid p-0">
     <!-- Panel de búsqueda -->
-    <div class="col-md-4">
-        <div class="search-container">
-            <h5 class="mb-3">Búsqueda de Ofertas</h5>
-            <div class="d-flex justify-content-end mb-3">
-                <button id="deleteAllButton" class="btn btn-danger">
-                    <i class="fas fa-trash"></i> Borrar Todas las Ofertas
-                </button>
-            </div>
+    <div class="card mb-3">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="card-title mb-0">Búsqueda de Ofertas</h5>
+        </div>
+        <div class="card-body p-2">
+            <button id="deleteAllButton" class="btn btn-danger mb-3" style="background-color: #dc3545; border-color: #dc3545; color: white; padding: 0.5rem 1rem; font-size: 1rem; border-radius: 0.25rem; display: inline-flex; align-items: center; gap: 0.5rem;">
+                <i class="fas fa-trash"></i> Borrar Todas las Ofertas
+            </button>
             <form id="searchForm">
-                <div class="mb-3">
-                    <label for="keywords" class="form-label">Palabras clave</label>
-                    <input type="text" class="form-control" id="keywords" name="keywords" required>
-                </div>
-                <div class="mb-3">
-                    <div class="form-select" id="provinciasDiv">
-                        <label for="of_provincia" class="form-label">en...</label>
-                        <select class="chosen-select" data-placeholder="Toda España" id="of_provincia" name="of_provincia" title="Selecciona una de las opciones o escribe tu opción">
-                            <option value="0" selected="true">Toda España</option>
-                            <option value="foreign">El extranjero</option>
-                            <optgroup label="Más comunes">
-                                <option value="33">Madrid</option>
-                                <option value="9">Barcelona</option>
-                                <option value="49">Valencia/València</option>
-                                <option value="43">Sevilla</option>
-                            </optgroup>
-                            <optgroup label="Todas">
-                                <option value="28">A Coruña</option>
-                                <option value="2">Álava/Araba</option>
-                                <option value="3">Albacete</option>
-                                <option value="4">Alicante/Alacant</option>
-                                <option value="5">Almería</option>
-                                <option value="6">Asturias</option>
-                                <option value="7">Ávila</option>
-                                <option value="8">Badajoz</option>
-                                <option value="9">Barcelona</option>
-                                <option value="10">Burgos</option>
-                                <option value="11">Cáceres</option>
-                                <option value="12">Cádiz</option>
-                                <option value="13">Cantabria</option>
-                                <option value="14">Castellón/Castelló</option>
-                                <option value="15">Ceuta</option>
-                                <option value="16">Ciudad Real</option>
-                                <option value="17">Córdoba</option>
-                                <option value="18">Cuenca</option>
-                                <option value="19">Girona</option>
-                                <option value="21">Granada</option>
-                                <option value="22">Guadalajara</option>
-                                <option value="23">Guipúzcoa/Gipuzkoa</option>
-                                <option value="24">Huelva</option>
-                                <option value="25">Huesca</option>
-                                <option value="26">Islas Baleares/Illes Balears</option>
-                                <option value="27">Jaén</option>
-                                <option value="29">La Rioja</option>
-                                <option value="20">Las Palmas</option>
-                                <option value="30">León</option>
-                                <option value="31">Lleida</option>
-                                <option value="32">Lugo</option>
-                                <option value="33">Madrid</option>
-                                <option value="34">Málaga</option>
-                                <option value="35">Melilla</option>
-                                <option value="36">Murcia</option>
-                                <option value="37">Navarra</option>
-                                <option value="38">Ourense</option>
-                                <option value="39">Palencia</option>
-                                <option value="40">Pontevedra</option>
-                                <option value="41">Salamanca</option>
-                                <option value="46">Santa Cruz de Tenerife</option>
-                                <option value="42">Segovia</option>
-                                <option value="43">Sevilla</option>
-                                <option value="44">Soria</option>
-                                <option value="45">Tarragona</option>
-                                <option value="47">Teruel</option>
-                                <option value="48">Toledo</option>
-                                <option value="49">Valencia/València</option>
-                                <option value="50">Valladolid</option>
-                                <option value="51">Vizcaya/Bizkaia</option>
-                                <option value="52">Zamora</option>
-                                <option value="53">Zaragoza</option>
-                            </optgroup>
-                        </select>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="keywords" class="form-label" style="color: white;">Palabras clave</label>
+                            <input type="text" class="form-control" id="keywords" name="keywords" required style="background-color: white !important; border: 1px solid #ced4da; color: black;">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="of_provincia" class="form-label" style="color: white;">Ubicación</label>
+                            <select class="chosen-select" data-placeholder="Toda España" id="of_provincia" name="of_provincia" title="Selecciona una de las opciones o escribe tu opción" style="background-color: white !important; border: 1px solid #ced4da; color: black;">
+                                <option value="0" selected="true">Toda España</option>
+                                <option value="foreign">El extranjero</option>
+                                <optgroup label="Más comunes">
+                                    <option value="33">Madrid</option>
+                                    <option value="9">Barcelona</option>
+                                    <option value="49">Valencia/València</option>
+                                    <option value="43">Sevilla</option>
+                                </optgroup>
+                                <optgroup label="Todas">
+                                    <option value="28">A Coruña</option>
+                                    <option value="2">Álava/Araba</option>
+                                    <option value="3">Albacete</option>
+                                    <option value="4">Alicante/Alacant</option>
+                                    <option value="5">Almería</option>
+                                    <option value="6">Asturias</option>
+                                    <option value="7">Ávila</option>
+                                    <option value="8">Badajoz</option>
+                                    <option value="9">Barcelona</option>
+                                    <option value="10">Burgos</option>
+                                    <option value="11">Cáceres</option>
+                                    <option value="12">Cádiz</option>
+                                    <option value="13">Cantabria</option>
+                                    <option value="14">Castellón/Castelló</option>
+                                    <option value="15">Ceuta</option>
+                                    <option value="16">Ciudad Real</option>
+                                    <option value="17">Córdoba</option>
+                                    <option value="18">Cuenca</option>
+                                    <option value="19">Girona</option>
+                                    <option value="21">Granada</option>
+                                    <option value="22">Guadalajara</option>
+                                    <option value="23">Guipúzcoa/Gipuzkoa</option>
+                                    <option value="24">Huelva</option>
+                                    <option value="25">Huesca</option>
+                                    <option value="26">Islas Baleares/Illes Balears</option>
+                                    <option value="27">Jaén</option>
+                                    <option value="29">La Rioja</option>
+                                    <option value="20">Las Palmas</option>
+                                    <option value="30">León</option>
+                                    <option value="31">Lleida</option>
+                                    <option value="32">Lugo</option>
+                                    <option value="33">Madrid</option>
+                                    <option value="34">Málaga</option>
+                                    <option value="35">Melilla</option>
+                                    <option value="36">Murcia</option>
+                                    <option value="37">Navarra</option>
+                                    <option value="38">Ourense</option>
+                                    <option value="39">Palencia</option>
+                                    <option value="40">Pontevedra</option>
+                                    <option value="41">Salamanca</option>
+                                    <option value="46">Santa Cruz de Tenerife</option>
+                                    <option value="42">Segovia</option>
+                                    <option value="43">Sevilla</option>
+                                    <option value="44">Soria</option>
+                                    <option value="45">Tarragona</option>
+                                    <option value="47">Teruel</option>
+                                    <option value="48">Toledo</option>
+                                    <option value="49">Valencia/València</option>
+                                    <option value="50">Valladolid</option>
+                                    <option value="51">Vizcaya/Bizkaia</option>
+                                    <option value="52">Zamora</option>
+                                    <option value="53">Zaragoza</option>
+                                </optgroup>
+                            </select>
+                        </div>
                     </div>
                 </div>
                 <button type="submit" id="searchOffers" class="btn btn-cta w-100" title="Buscar trabajo con mis preferencias">
@@ -90,397 +94,66 @@
                 </button>
             </form>
         </div>
-
-        <!-- Historial de búsquedas -->
-        <div class="card mt-3">
-            <div class="card-header">
-                <h5 class="card-title mb-0">Historial de Búsquedas</h5>
-            </div>
-            <div class="card-body">
-                <div class="list-group">
-                    {% for search in search_history %}
-                    <div class="list-group-item list-group-item-action">
-                        <div class="d-flex w-100 justify-content-between">
-                            <h6 class="mb-1">{{ search.keywords }}</h6>
-                            <small>{{ search.created_at|date:"d/m/Y H:i" }}</small>
-                        </div>
-                        <p class="mb-1">{{ search.location }} - {{ search.results_count }} resultados</p>
-                    </div>
-                    {% empty %}
-                    <p class="text-muted">No hay búsquedas recientes</p>
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
     </div>
 
     <!-- Lista de ofertas -->
-    <div class="col-md-8">
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="card-title mb-0">Ofertas de Trabajo</h5>
-                <span class="badge bg-primary">{{ total_jobs }} ofertas</span>
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="card-title mb-0">Ofertas de Trabajo</h5>
+            <span class="badge bg-primary">{{ total_jobs }} ofertas</span>
+        </div>
+        <div class="card-body p-2">
+            <div class="alert alert-info">
+                Mostrando {{ jobs.start_index }} a {{ jobs.end_index }} de {{ total_jobs }} ofertas
             </div>
-            <div class="card-body">
-                <div class="alert alert-info">
-                    Mostrando {{ jobs.start_index }} a {{ jobs.end_index }} de {{ total_jobs }} ofertas
-                </div>
-                
-                <!-- Filtros y Ordenación -->
-                <div class="card mb-4">
-                    <div class="card-body">
-                        <h5 class="card-title">Filtros y Ordenación</h5>
-                        <form method="get" action="{% url 'jobs:dashboard' %}" id="filterForm">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="filter_by">Filtrar por:</label>
-                                        <select name="filter_by" id="filter_by" class="form-control">
-                                            <option value="">Ninguno</option>
-                                            <option value="salary" {% if filter_by == 'salary' %}selected{% endif %}>Salario</option>
-                                            <option value="work_mode" {% if filter_by == 'work_mode' %}selected{% endif %}>Modo de trabajo</option>
-                                            <option value="min_experience" {% if filter_by == 'min_experience' %}selected{% endif %}>Experiencia mínima</option>
-                                            <option value="contract_type" {% if filter_by == 'contract_type' %}selected{% endif %}>Tipo de contrato</option>
-                                            <option value="vacantes" {% if filter_by == 'vacantes' %}selected{% endif %}>Vacantes</option>
-                                            <option value="inscritos" {% if filter_by == 'inscritos' %}selected{% endif %}>Inscritos</option>
-                                            <option value="publication_date" {% if filter_by == 'publication_date' %}selected{% endif %}>Fecha</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="order_by">Ordenar por:</label>
-                                        <select name="order_by" id="order_by" class="form-control">
-                                            <option value="-created_at" {% if order_by == '-created_at' %}selected{% endif %}>Fecha de creación (más reciente)</option>
-                                            <option value="created_at" {% if order_by == 'created_at' %}selected{% endif %}>Fecha de creación (más antigua)</option>
-                                            <option value="title" {% if order_by == 'title' %}selected{% endif %}>Título</option>
-                                            <option value="company" {% if order_by == 'company' %}selected{% endif %}>Empresa</option>
-                                            <option value="salary" {% if order_by == 'salary' %}selected{% endif %}>Salario</option>
-                                            <option value="work_mode" {% if order_by == 'work_mode' %}selected{% endif %}>Modo de trabajo</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="mt-3">
-                                <button type="submit" class="btn btn-primary">Aplicar</button>
-                                <a href="{% url 'jobs:dashboard' %}" class="btn btn-secondary">Resetear</a>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-                
-                <div id="jobsList">
-                    <table class="table">
+            
+            <div id="jobsList">
+                <div class="table-responsive">
+                    <table class="table table-sm">
                         <thead>
                             <tr>
-                                <th>
-                                    <div class="d-flex flex-column">
-                                        <span>Título</span>
-                                        <div class="btn-group btn-group-sm">
-                                            <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                                <i class="fas fa-filter"></i>
-                                            </button>
-                                            <div class="dropdown-menu p-2">
-                                                <input type="text" class="form-control form-control-sm mb-2" id="filter_title" placeholder="Filtrar título...">
-                                                <button class="btn btn-primary btn-sm w-100" onclick="applyFilter('title')">Aplicar</button>
-                                            </div>
-                                        </div>
-                                        <div class="btn-group btn-group-sm mt-1">
-                                            <button class="btn btn-outline-secondary" onclick="sortTable('title')">
-                                                <i class="fas fa-sort"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </th>
-                                <th>
-                                    <div class="d-flex flex-column">
-                                        <span>Empresa</span>
-                                        <div class="btn-group btn-group-sm">
-                                            <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                                <i class="fas fa-filter"></i>
-                                            </button>
-                                            <div class="dropdown-menu p-2">
-                                                <input type="text" class="form-control form-control-sm mb-2" id="filter_company" placeholder="Filtrar empresa...">
-                                                <button class="btn btn-primary btn-sm w-100" onclick="applyFilter('company')">Aplicar</button>
-                                            </div>
-                                        </div>
-                                        <div class="btn-group btn-group-sm mt-1">
-                                            <button class="btn btn-outline-secondary" onclick="sortTable('company')">
-                                                <i class="fas fa-sort"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </th>
-                                <th>
-                                    <div class="d-flex flex-column">
-                                        <span>Ubicación</span>
-                                        <div class="btn-group btn-group-sm">
-                                            <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                                <i class="fas fa-filter"></i>
-                                            </button>
-                                            <div class="dropdown-menu p-2">
-                                                <input type="text" class="form-control form-control-sm mb-2" id="filter_location" placeholder="Filtrar ubicación...">
-                                                <button class="btn btn-primary btn-sm w-100" onclick="applyFilter('location')">Aplicar</button>
-                                            </div>
-                                        </div>
-                                        <div class="btn-group btn-group-sm mt-1">
-                                            <button class="btn btn-outline-secondary" onclick="sortTable('location')">
-                                                <i class="fas fa-sort"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </th>
-                                <th>
-                                    <div class="d-flex flex-column">
-                                        <span>Salario</span>
-                                        <div class="btn-group btn-group-sm">
-                                            <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                                <i class="fas fa-filter"></i>
-                                            </button>
-                                            <div class="dropdown-menu p-2">
-                                                <input type="text" class="form-control form-control-sm mb-2" id="filter_salary" placeholder="Filtrar salario...">
-                                                <button class="btn btn-primary btn-sm w-100" onclick="applyFilter('salary')">Aplicar</button>
-                                            </div>
-                                        </div>
-                                        <div class="btn-group btn-group-sm mt-1">
-                                            <button class="btn btn-outline-secondary" onclick="sortTable('salary')">
-                                                <i class="fas fa-sort"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </th>
-                                <th>
-                                    <div class="d-flex flex-column">
-                                        <span>Modo de trabajo</span>
-                                        <div class="btn-group btn-group-sm">
-                                            <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                                <i class="fas fa-filter"></i>
-                                            </button>
-                                            <div class="dropdown-menu p-2">
-                                                <select class="form-select form-select-sm mb-2" id="filter_work_mode">
-                                                    <option value="">Todos</option>
-                                                    {% for value in unique_values.work_mode %}
-                                                        {% if value %}
-                                                            <option value="{{ value }}">{{ value }}</option>
-                                                        {% endif %}
-                                                    {% endfor %}
-                                                </select>
-                                                <button class="btn btn-primary btn-sm w-100" onclick="applyFilter('work_mode')">Aplicar</button>
-                                            </div>
-                                        </div>
-                                        <div class="btn-group btn-group-sm mt-1">
-                                            <button class="btn btn-outline-secondary" onclick="sortTable('work_mode')">
-                                                <i class="fas fa-sort"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </th>
-                                <th>
-                                    <div class="d-flex flex-column">
-                                        <span>Experiencia</span>
-                                        <div class="btn-group btn-group-sm">
-                                            <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                                <i class="fas fa-filter"></i>
-                                            </button>
-                                            <div class="dropdown-menu p-2">
-                                                <select class="form-select form-select-sm mb-2" id="filter_min_experience">
-                                                    <option value="">Todos</option>
-                                                    {% for value in unique_values.min_experience %}
-                                                        {% if value %}
-                                                            <option value="{{ value }}">{{ value }}</option>
-                                                        {% endif %}
-                                                    {% endfor %}
-                                                </select>
-                                                <button class="btn btn-primary btn-sm w-100" onclick="applyFilter('min_experience')">Aplicar</button>
-                                            </div>
-                                        </div>
-                                        <div class="btn-group btn-group-sm mt-1">
-                                            <button class="btn btn-outline-secondary" onclick="sortTable('min_experience')">
-                                                <i class="fas fa-sort"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </th>
-                                <th>
-                                    <div class="d-flex flex-column">
-                                        <span>Tipo de contrato</span>
-                                        <div class="btn-group btn-group-sm">
-                                            <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                                <i class="fas fa-filter"></i>
-                                            </button>
-                                            <div class="dropdown-menu p-2">
-                                                <select class="form-select form-select-sm mb-2" id="filter_contract_type">
-                                                    <option value="">Todos</option>
-                                                    {% for value in unique_values.contract_type %}
-                                                        {% if value %}
-                                                            <option value="{{ value }}">{{ value }}</option>
-                                                        {% endif %}
-                                                    {% endfor %}
-                                                </select>
-                                                <button class="btn btn-primary btn-sm w-100" onclick="applyFilter('contract_type')">Aplicar</button>
-                                            </div>
-                                        </div>
-                                        <div class="btn-group btn-group-sm mt-1">
-                                            <button class="btn btn-outline-secondary" onclick="sortTable('contract_type')">
-                                                <i class="fas fa-sort"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </th>
-                                <th>
-                                    <div class="d-flex flex-column">
-                                        <span>Estudios</span>
-                                        <div class="btn-group btn-group-sm">
-                                            <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                                <i class="fas fa-filter"></i>
-                                            </button>
-                                            <div class="dropdown-menu p-2">
-                                                <select class="form-select form-select-sm mb-2" id="filter_studies">
-                                                    <option value="">Todos</option>
-                                                    {% for value in unique_values.studies %}
-                                                        {% if value %}
-                                                            <option value="{{ value }}">{{ value }}</option>
-                                                        {% endif %}
-                                                    {% endfor %}
-                                                </select>
-                                                <button class="btn btn-primary btn-sm w-100" onclick="applyFilter('studies')">Aplicar</button>
-                                            </div>
-                                        </div>
-                                        <div class="btn-group btn-group-sm mt-1">
-                                            <button class="btn btn-outline-secondary" onclick="sortTable('studies')">
-                                                <i class="fas fa-sort"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </th>
-                                <th>
-                                    <div class="d-flex flex-column">
-                                        <span>Idiomas</span>
-                                        <div class="btn-group btn-group-sm">
-                                            <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                                <i class="fas fa-filter"></i>
-                                            </button>
-                                            <div class="dropdown-menu p-2">
-                                                <select class="form-select form-select-sm mb-2" id="filter_languages">
-                                                    <option value="">Todos</option>
-                                                    {% for value in unique_values.languages %}
-                                                        {% if value %}
-                                                            <option value="{{ value }}">{{ value }}</option>
-                                                        {% endif %}
-                                                    {% endfor %}
-                                                </select>
-                                                <button class="btn btn-primary btn-sm w-100" onclick="applyFilter('languages')">Aplicar</button>
-                                            </div>
-                                        </div>
-                                        <div class="btn-group btn-group-sm mt-1">
-                                            <button class="btn btn-outline-secondary" onclick="sortTable('languages')">
-                                                <i class="fas fa-sort"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </th>
-                                <th>
-                                    <div class="d-flex flex-column">
-                                        <span>Conocimientos</span>
-                                        <div class="btn-group btn-group-sm">
-                                            <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                                <i class="fas fa-filter"></i>
-                                            </button>
-                                            <div class="dropdown-menu p-2">
-                                                <input type="text" class="form-control form-control-sm mb-2" id="filter_required_skills" placeholder="Filtrar conocimientos...">
-                                                <button class="btn btn-primary btn-sm w-100" onclick="applyFilter('required_skills')">Aplicar</button>
-                                            </div>
-                                        </div>
-                                        <div class="btn-group btn-group-sm mt-1">
-                                            <button class="btn btn-outline-secondary" onclick="sortTable('required_skills')">
-                                                <i class="fas fa-sort"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </th>
-                                <th>
-                                    <div class="d-flex flex-column">
-                                        <span>Vacantes</span>
-                                        <div class="btn-group btn-group-sm">
-                                            <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                                <i class="fas fa-filter"></i>
-                                            </button>
-                                            <div class="dropdown-menu p-2">
-                                                <input type="text" class="form-control form-control-sm mb-2" id="filter_vacantes" placeholder="Filtrar vacantes...">
-                                                <button class="btn btn-primary btn-sm w-100" onclick="applyFilter('vacantes')">Aplicar</button>
-                                            </div>
-                                        </div>
-                                        <div class="btn-group btn-group-sm mt-1">
-                                            <button class="btn btn-outline-secondary" onclick="sortTable('vacantes')">
-                                                <i class="fas fa-sort"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </th>
-                                <th>
-                                    <div class="d-flex flex-column">
-                                        <span>Inscritos</span>
-                                        <div class="btn-group btn-group-sm">
-                                            <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                                <i class="fas fa-filter"></i>
-                                            </button>
-                                            <div class="dropdown-menu p-2">
-                                                <input type="text" class="form-control form-control-sm mb-2" id="filter_inscritos" placeholder="Filtrar inscritos...">
-                                                <button class="btn btn-primary btn-sm w-100" onclick="applyFilter('inscritos')">Aplicar</button>
-                                            </div>
-                                        </div>
-                                        <div class="btn-group btn-group-sm mt-1">
-                                            <button class="btn btn-outline-secondary" onclick="sortTable('inscritos')">
-                                                <i class="fas fa-sort"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </th>
-                                <th>
-                                    <div class="d-flex flex-column">
-                                        <span>Fecha</span>
-                                        <div class="btn-group btn-group-sm">
-                                            <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                                <i class="fas fa-filter"></i>
-                                            </button>
-                                            <div class="dropdown-menu p-2">
-                                                <input type="text" class="form-control form-control-sm mb-2" id="filter_publication_date" placeholder="Filtrar fecha...">
-                                                <button class="btn btn-primary btn-sm w-100" onclick="applyFilter('publication_date')">Aplicar</button>
-                                            </div>
-                                        </div>
-                                        <div class="btn-group btn-group-sm mt-1">
-                                            <button class="btn btn-outline-secondary" onclick="sortTable('publication_date')">
-                                                <i class="fas fa-sort"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </th>
-                                <th>Acciones</th>
+                                <th style="width: 20%">Título</th>
+                                <th style="width: 15%">Empresa</th>
+                                <th style="width: 10%">Ubicación</th>
+                                <th style="width: 10%">Salario</th>
+                                <th style="width: 10%">Modo de trabajo</th>
+                                <th style="width: 10%">Experiencia</th>
+                                <th style="width: 10%">Tipo de contrato</th>
+                                <th style="width: 10%">Estudios</th>
+                                <th style="width: 10%">Idiomas</th>
+                                <th style="width: 10%">Conocimientos</th>
+                                <th style="width: 5%">Vacantes</th>
+                                <th style="width: 5%">Inscritos</th>
+                                <th style="width: 10%">Fecha</th>
+                                <th style="width: 5%">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for job in jobs %}
-                            <tr>
-                                <td><a href="{{ job.url }}" target="_blank">{{ job.title }}</a></td>
-                                <td>{{ job.company }}</td>
-                                <td>{{ job.location }}</td>
-                                <td>{{ job.salary|default:"No especificado" }}</td>
-                                <td>{{ job.work_mode|default:"No especificado" }}</td>
-                                <td>{{ job.min_experience|default:"No especificado" }}</td>
-                                <td>{{ job.contract_type|default:"No especificado" }}</td>
-                                <td>{{ job.studies|default:"No especificado" }}</td>
-                                <td>{{ job.languages|default:"No especificado" }}</td>
-                                <td>{{ job.required_skills|default:"No especificado"|truncatechars:30 }}</td>
-                                <td>{{ job.vacantes|default:"No especificado" }}</td>
-                                <td>{{ job.inscritos|default:"No especificado" }}</td>
-                                <td>{{ job.publication_date|default:"No especificado" }}</td>
+                            <tr style="background-color: white;">
+                                <td style="color: black;"><a href="{{ job.url }}" target="_blank" style="color: black;">{{ job.title }}</a></td>
+                                <td style="color: black;">{{ job.company }}</td>
+                                <td style="color: black;">{{ job.location }}</td>
+                                <td style="color: black;">{{ job.salary|default:"No especificado" }}</td>
+                                <td style="color: black;">{{ job.work_mode|default:"No especificado" }}</td>
+                                <td style="color: black;">{{ job.min_experience|default:"No especificado" }}</td>
+                                <td style="color: black;">{{ job.contract_type|default:"No especificado" }}</td>
+                                <td style="color: black;">{{ job.studies|default:"No especificado" }}</td>
+                                <td style="color: black;">{{ job.languages|default:"No especificado" }}</td>
+                                <td style="color: black;">{{ job.required_skills|default:"No especificado"|truncatechars:30 }}</td>
+                                <td style="color: black;">{{ job.vacantes|default:"No especificado" }}</td>
+                                <td style="color: black;">{{ job.inscritos|default:"No especificado" }}</td>
+                                <td style="color: black;">{{ job.publication_date|default:"No especificado" }}</td>
                                 <td>
                                     <a href="{% url 'jobs:job_detail' job.id %}" class="btn btn-sm btn-info me-1" title="Ver detalles">
                                         <i class="fas fa-eye"></i>
                                     </a>
-                                    <a href="{{ job.url }}" target="_blank" class="btn btn-sm btn-primary" title="Ver en InfoJobs">
+                                    <a href="{{ job.url }}" target="_blank" class="btn btn-sm btn-primary me-1" title="Ver en InfoJobs">
                                         <i class="fas fa-external-link-alt"></i>
                                     </a>
+                                    <button class="btn btn-sm btn-danger delete-job" data-job-id="{{ job.id }}" title="Eliminar oferta">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
                                 </td>
                             </tr>
                             {% empty %}
@@ -491,41 +164,178 @@
                         </tbody>
                     </table>
                 </div>
-
-                <!-- Paginación -->
-                {% if jobs.has_other_pages %}
-                <nav aria-label="Page navigation" class="mt-4">
-                    <ul class="pagination justify-content-center">
-                        {% if jobs.has_previous %}
-                        <li class="page-item">
-                            <a class="page-link" href="?page={{ jobs.previous_page_number }}{% if filter_by %}&filter_by={{ filter_by }}{% endif %}{% if order_by %}&order_by={{ order_by }}{% endif %}" data-page="{{ jobs.previous_page_number }}">Anterior</a>
-                        </li>
-                        {% endif %}
-
-                        {% for num in jobs.paginator.page_range %}
-                            {% if num == jobs.number %}
-                                <li class="page-item active">
-                                    <span class="page-link">{{ num }}</span>
-                                </li>
-                            {% elif num > jobs.number|add:'-3' and num < jobs.number|add:'3' %}
-                                <li class="page-item">
-                                    <a class="page-link" href="?page={{ num }}{% if filter_by %}&filter_by={{ filter_by }}{% endif %}{% if order_by %}&order_by={{ order_by }}{% endif %}" data-page="{{ num }}">{{ num }}</a>
-                                </li>
-                            {% endif %}
-                        {% endfor %}
-
-                        {% if jobs.has_next %}
-                        <li class="page-item">
-                            <a class="page-link" href="?page={{ jobs.next_page_number }}{% if filter_by %}&filter_by={{ filter_by }}{% endif %}{% if order_by %}&order_by={{ order_by }}{% endif %}" data-page="{{ jobs.next_page_number }}">Siguiente</a>
-                        </li>
-                        {% endif %}
-                    </ul>
-                </nav>
-                {% endif %}
             </div>
+
+            <!-- Paginación -->
+            {% if jobs.has_other_pages %}
+            <nav aria-label="Page navigation" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if jobs.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ jobs.previous_page_number }}{% if filter_by %}&filter_by={{ filter_by }}{% endif %}{% if order_by %}&order_by={{ order_by }}{% endif %}" data-page="{{ jobs.previous_page_number }}">Anterior</a>
+                    </li>
+                    {% endif %}
+
+                    {% for num in jobs.paginator.page_range %}
+                        {% if num == jobs.number %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ num }}</span>
+                            </li>
+                        {% elif num > jobs.number|add:'-3' and num < jobs.number|add:'3' %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ num }}{% if filter_by %}&filter_by={{ filter_by }}{% endif %}{% if order_by %}&order_by={{ order_by }}{% endif %}" data-page="{{ num }}">{{ num }}</a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if jobs.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ jobs.next_page_number }}{% if filter_by %}&filter_by={{ filter_by }}{% endif %}{% if order_by %}&order_by={{ order_by }}{% endif %}" data-page="{{ jobs.next_page_number }}">Siguiente</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
         </div>
     </div>
 </div>
+
+<style>
+body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    overflow-x: hidden;
+    background-color: black;
+    color: white;
+}
+
+.container-fluid {
+    width: 100%;
+    max-width: 100%;
+    padding-right: 0;
+    padding-left: 0;
+    margin-right: auto;
+    margin-left: auto;
+}
+
+.card {
+    margin-bottom: 1rem;
+    width: 100%;
+    max-width: 100%;
+    border: none;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border-radius: 0;
+    background-color: black;
+}
+
+.card-header {
+    background-color: black;
+    border-bottom: 1px solid rgba(255,255,255,.125);
+    padding: 0.5rem 1rem;
+}
+
+.card-body {
+    width: 100%;
+    max-width: 100%;
+    padding: 0.5rem !important;
+    background-color: black;
+}
+
+.table-responsive {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 0;
+    padding: 0;
+}
+
+.table {
+    width: 100%;
+    max-width: 100%;
+    margin-bottom: 0;
+    background-color: transparent;
+    table-layout: fixed;
+}
+
+.table-sm {
+    font-size: 0.875rem;
+}
+
+.table-sm th,
+.table-sm td {
+    padding: 0.3rem !important;
+    vertical-align: middle;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.table-sm thead th {
+    position: sticky;
+    top: 0;
+    background-color: black;
+    z-index: 1;
+    color: white;
+}
+
+.btn-danger {
+    background-color: #dc3545 !important;
+    border-color: #dc3545 !important;
+    color: white !important;
+    padding: 0.5rem 1rem !important;
+    font-size: 1rem !important;
+    border-radius: 0.25rem !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+}
+
+.btn-danger:hover {
+    background-color: #c82333 !important;
+    border-color: #bd2130 !important;
+    color: white !important;
+}
+
+.btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    line-height: 1.5;
+    border-radius: 0.2rem;
+}
+
+.form-control, .chosen-select {
+    background-color: white !important;
+    border: 1px solid #ced4da !important;
+    color: black !important;
+}
+
+.chosen-container .chosen-single {
+    background-color: white !important;
+    border: 1px solid #ced4da !important;
+    color: black !important;
+}
+
+.form-label {
+    color: white !important;
+}
+
+.alert {
+    background-color: black;
+    color: white;
+    border-color: rgba(255,255,255,.125);
+}
+
+a {
+    color: white;
+    text-decoration: none;
+}
+
+a:hover {
+    color: #0d6efd;
+}
+</style>
 {% endblock %}
 
 {% block extra_js %}
