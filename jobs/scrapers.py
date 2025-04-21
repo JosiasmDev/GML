@@ -19,6 +19,9 @@ from urllib.parse import quote
 import os
 import tempfile
 from datetime import datetime, timedelta
+import pyautogui
+import time
+import inspect
 
 # Configurar logging
 logging.basicConfig(level=logging.INFO)
@@ -29,36 +32,62 @@ class InfoJobsScraper:
     
     def __init__(self, headless=False, use_existing_browser=False):
         logger.info("Iniciando InfoJobsScraper...")
+        logger.info(f"URL base configurada: {self.BASE_URL}")
         
         if use_existing_browser:
-            logger.info("Conectando a una instancia existente de Firefox...")
-            try:
-                # Crear un perfil temporal para Firefox
-                temp_dir = tempfile.mkdtemp()
-                firefox_profile = webdriver.FirefoxProfile(temp_dir)
+            logger.info("Buscando ventana de Firefox existente...")
+            
+            # Buscar la ventana de Firefox en la barra de tareas
+            logger.info("PYAUTOGUI: Buscando ventanas de Firefox...")
+            firefox_windows = pyautogui.getWindowsWithTitle("firefox")
+            if not firefox_windows:
+                raise Exception("No se encontró ninguna ventana de Firefox abierta")
+            
+            # Seleccionar la primera ventana de Firefox encontrada
+            logger.info("PYAUTOGUI: Activando ventana de Firefox...")
+            firefox_window = firefox_windows[0]
+            firefox_window.activate()
+            time.sleep(1)  # Esperar a que la ventana se active
+            
+            # Abrir nueva pestaña (Ctrl+T)
+            logger.info("PYAUTOGUI: Abriendo nueva pestaña...")
+            pyautogui.hotkey('ctrl', 't')
+            time.sleep(1)  # Esperar a que se abra la pestaña
+            
+            # Navegar a la URL base usando pyautogui
+            logger.info("PYAUTOGUI: Navegando a la URL base...")
+            pyautogui.hotkey('ctrl', 'l')  # Seleccionar la barra de direcciones
+            time.sleep(0.5)
+            # Verificar y limpiar la URL antes de usarla
+            url_to_use = self.BASE_URL.strip()
+            if url_to_use.startswith("77"):
+                url_to_use = url_to_use[2:]
+            logger.info(f"PYAUTOGUI: Escribiendo URL: {url_to_use}")
+            pyautogui.write(url_to_use)
+            time.sleep(0.5)
+            pyautogui.press('enter')
+            time.sleep(2)  # Esperar a que la página cargue
+            
+            # Verificar la URL actual
+            current_url = self.driver.current_url
+            logger.info(f"URL actual después de la navegación: {current_url}")
+            
+            # Ahora que la pestaña está abierta y navegando, configuramos Selenium para usar la sesión existente
+            logger.info("SELENIUM: Configurando opciones de Firefox...")
+            firefox_options = Options()
+            firefox_options.profile = webdriver.FirefoxProfile()
+            
+            # Configurar el servicio con la ruta específica del geckodriver
+            logger.info("SELENIUM: Configurando servicio...")
+            service = Service('/usr/local/bin/geckodriver')
+            
+            # Inicializar el driver con el perfil y el servicio
+            logger.info("SELENIUM: Inicializando driver...")
+            self.driver = webdriver.Firefox(service=service, options=firefox_options)
                 
-                # Configurar opciones para usar el perfil existente
-                firefox_options = Options()
-                firefox_options.profile = firefox_profile
-                
-                # Configurar el servicio con la ruta específica del geckodriver
-                service = Service('/usr/local/bin/geckodriver')
-                
-                # Inicializar el driver con el perfil y el servicio
-                self.driver = webdriver.Firefox(service=service, options=firefox_options)
-                
-                # Abrir una nueva pestaña
-                self.driver.execute_script("window.open('about:blank', '_blank');")
-                
-                # Cambiar a la nueva pestaña
-                self.driver.switch_to.window(self.driver.window_handles[-1])
-                
-                logger.info("Conexión exitosa a Firefox existente y nueva pestaña abierta")
-            except Exception as e:
-                logger.error(f"Error al conectar a Firefox existente: {str(e)}")
-                raise
         else:
             # Configurar opciones de Firefox
+            logger.info("SELENIUM: Configurando opciones de Firefox...")
             firefox_options = Options()
             if headless:
                 firefox_options.add_argument('--headless')
@@ -80,6 +109,7 @@ class InfoJobsScraper:
             ]
             
             # Configurar el perfil de Firefox
+            logger.info("SELENIUM: Configurando perfil de Firefox...")
             firefox_profile = webdriver.FirefoxProfile() if hasattr(webdriver, 'FirefoxProfile') else None
             if firefox_profile:
                 firefox_profile.set_preference("general.useragent.override", random.choice(user_agents))
@@ -93,14 +123,12 @@ class InfoJobsScraper:
             
             try:
                 # Configurar el servicio con la ruta específica del geckodriver
+                logger.info("SELENIUM: Configurando servicio...")
                 service = Service('/usr/local/bin/geckodriver')
                 
                 # Inicializar el driver con el servicio
-                logger.info("Inicializando el driver de Firefox...")
-                self.driver = webdriver.Firefox(
-                    service=service,
-                    options=firefox_options
-                )
+                logger.info("SELENIUM: Inicializando driver...")
+                self.driver = webdriver.Firefox(service=service, options=firefox_options)
                 self.driver.implicitly_wait(20)
                 logger.info("Driver de Firefox inicializado correctamente")
             except WebDriverException as e:
@@ -509,20 +537,18 @@ class InfoJobsScraper:
             location_name = self.province_map.get(location, "Toda España")
             logger.info(f"Iniciando búsqueda en {location_name} (código: {location})")
             
-            # Navegar a la página principal de InfoJobs
+            # Navegar directamente usando el driver de Selenium
             logger.info("Navegando a la página principal de InfoJobs...")
-            self.driver.get(self.BASE_URL)
+            self.driver.get("https://www.infojobs.net")
+            self.random_sleep(2, 3)
             
-            # Esperar más tiempo para que la página se cargue completamente
+            # Esperar a que la página se cargue completamente
             logger.info("Esperando a que la página se cargue completamente...")
-            self.random_sleep(8, 10)
+            self.random_sleep(3, 5)
             
-            # Imprimir la URL actual para depuración
+            # Verificar la URL actual
             current_url = self.driver.current_url
-            logger.info(f"URL actual: {current_url}")
-            
-            # Capturar pantalla inicial para depuración
-            self.take_screenshot("initial_page")
+            logger.info(f"URL actual después de la navegación: {current_url}")
             
             # Manejar el botón de cookies si está presente
             logger.info("Buscando el botón de cookies...")
