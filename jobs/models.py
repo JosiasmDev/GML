@@ -21,6 +21,7 @@ class JobOffer(models.Model):
     search_history = models.ForeignKey('SearchHistory', on_delete=models.CASCADE, related_name='job_offers', null=True, blank=True)
     vacantes = models.CharField(max_length=50, blank=True, verbose_name="Número de vacantes")
     inscritos = models.CharField(max_length=50, blank=True, verbose_name="Número de inscritos")
+    is_favorite = models.BooleanField(default=False, verbose_name="Oferta favorita")
     
     class Meta:
         ordering = ['-created_at']

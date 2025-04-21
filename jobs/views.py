@@ -5,6 +5,7 @@ from django.core.paginator import Paginator
 from .models import JobOffer, SearchHistory
 from .scrapers import InfoJobsScraper
 import json
+from django.contrib.auth.decorators import login_required
 
 def dashboard(request):
     # Obtener parámetros de filtrado y ordenación
@@ -117,6 +118,7 @@ def search_jobs(request):
             data = json.loads(request.body)
             keywords = data.get('keywords', '')
             location = data.get('location', '0')
+            source = data.get('source', 'InfoJobs')  # Por defecto InfoJobs
             
             if not keywords:
                 return JsonResponse({
@@ -124,7 +126,19 @@ def search_jobs(request):
                     'message': 'Por favor, introduce algunas palabras clave para buscar'
                 })
             
-            scraper = InfoJobsScraper()
+            # Seleccionar el scraper según la fuente
+            if source == 'LinkedIn':
+                try:
+                    from .linkedin_scraper import LinkedInScraper
+                    scraper = LinkedInScraper()
+                except ValueError as e:
+                    return JsonResponse({
+                        'success': False,
+                        'message': 'El servicio de LinkedIn no está disponible en este momento. Por favor, inténtalo más tarde o usa otro portal de búsqueda.'
+                    })
+            else:
+                scraper = InfoJobsScraper()
+            
             result = scraper.search_jobs(keywords, location)
             
             if result['success']:
@@ -189,3 +203,35 @@ def delete_job(request, job_id):
             'success': False,
             'message': 'Oferta no encontrada'
         })
+
+@login_required
+def infojobs_search(request):
+    """Vista para la página de búsqueda de InfoJobs"""
+    # Obtener estadísticas para InfoJobs
+    total_searches = SearchHistory.objects.filter(source='InfoJobs').count()
+    total_jobs = JobOffer.objects.filter(search_history__source='InfoJobs').count()
+    favorite_jobs = JobOffer.objects.filter(is_favorite=True, search_history__source='InfoJobs').count()
+    
+    context = {
+        'total_searches': total_searches,
+        'total_jobs': total_jobs,
+        'favorite_jobs': favorite_jobs,
+    }
+    
+    return render(request, 'jobs/infojobs.html', context)
+
+@login_required
+def linkedin_search(request):
+    """Vista para la página de búsqueda de LinkedIn"""
+    # Obtener estadísticas para LinkedIn
+    total_searches = SearchHistory.objects.filter(source='LinkedIn').count()
+    total_jobs = JobOffer.objects.filter(search_history__source='LinkedIn').count()
+    favorite_jobs = JobOffer.objects.filter(is_favorite=True, search_history__source='LinkedIn').count()
+    
+    context = {
+        'total_searches': total_searches,
+        'total_jobs': total_jobs,
+        'favorite_jobs': favorite_jobs,
+    }
+    
+    return render(request, 'jobs/linkedin_search.html', context)

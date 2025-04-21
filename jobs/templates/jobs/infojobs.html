@@ -1,0 +1,205 @@
+{% extends 'jobs/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h2 class="mb-0">Búsqueda en InfoJobs</h2>
+                    <button class="btn btn-danger" onclick="deleteAllJobs()">
+                        <i class="fas fa-trash"></i> Borrar Todas las Ofertas
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <div class="card bg-dark text-white">
+                                <div class="card-body">
+                                    <h5 class="card-title">Total de Búsquedas</h5>
+                                    <p class="card-text display-6">{{ total_searches }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-dark text-white">
+                                <div class="card-body">
+                                    <h5 class="card-title">Total de Ofertas</h5>
+                                    <p class="card-text display-6">{{ total_jobs }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-dark text-white">
+                                <div class="card-body">
+                                    <h5 class="card-title">Ofertas Favoritas</h5>
+                                    <p class="card-text display-6">{{ favorite_jobs }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="search-container">
+                        <form id="searchForm" onsubmit="return false;">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="keywords" class="form-label">Palabras clave</label>
+                                    <input type="text" class="form-control" id="keywords" name="keywords" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="location" class="form-label">Ubicación</label>
+                                    <select class="form-select chosen-select" id="location" name="location">
+                                        <option value="0">Toda España</option>
+                                        <option value="1">Álava</option>
+                                        <option value="2">Albacete</option>
+                                        <option value="3">Alicante</option>
+                                        <option value="4">Almería</option>
+                                        <option value="5">Asturias</option>
+                                        <option value="6">Ávila</option>
+                                        <option value="7">Badajoz</option>
+                                        <option value="8">Baleares</option>
+                                        <option value="9">Barcelona</option>
+                                        <option value="10">Burgos</option>
+                                        <option value="11">Cáceres</option>
+                                        <option value="12">Cádiz</option>
+                                        <option value="13">Cantabria</option>
+                                        <option value="14">Castellón</option>
+                                        <option value="15">Ceuta</option>
+                                        <option value="16">Ciudad Real</option>
+                                        <option value="17">Córdoba</option>
+                                        <option value="18">Cuenca</option>
+                                        <option value="19">Gerona</option>
+                                        <option value="20">Granada</option>
+                                        <option value="21">Guadalajara</option>
+                                        <option value="22">Guipúzcoa</option>
+                                        <option value="23">Huelva</option>
+                                        <option value="24">Huesca</option>
+                                        <option value="25">Jaén</option>
+                                        <option value="26">La Coruña</option>
+                                        <option value="27">La Rioja</option>
+                                        <option value="28">Las Palmas</option>
+                                        <option value="29">León</option>
+                                        <option value="30">Lérida</option>
+                                        <option value="31">Lugo</option>
+                                        <option value="32">Madrid</option>
+                                        <option value="33">Málaga</option>
+                                        <option value="34">Melilla</option>
+                                        <option value="35">Murcia</option>
+                                        <option value="36">Navarra</option>
+                                        <option value="37">Orense</option>
+                                        <option value="38">Palencia</option>
+                                        <option value="39">Pontevedra</option>
+                                        <option value="40">Salamanca</option>
+                                        <option value="41">Santa Cruz de Tenerife</option>
+                                        <option value="42">Segovia</option>
+                                        <option value="43">Sevilla</option>
+                                        <option value="44">Soria</option>
+                                        <option value="45">Tarragona</option>
+                                        <option value="46">Teruel</option>
+                                        <option value="47">Toledo</option>
+                                        <option value="48">Valencia</option>
+                                        <option value="49">Valladolid</option>
+                                        <option value="50">Vizcaya</option>
+                                        <option value="51">Zamora</option>
+                                        <option value="52">Zaragoza</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="text-center">
+                                <button type="submit" class="btn btn-primary btn-lg" onclick="searchJobs()">
+                                    <i class="fas fa-search"></i> Buscar
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div id="searchResults" class="mt-4" style="display: none;">
+                        <h3>Resultados de la búsqueda</h3>
+                        <div id="resultsList" class="list-group"></div>
+                    </div>
+
+                    <div id="logs" class="mt-4">
+                        <h3>Logs de búsqueda</h3>
+                        <div id="logContent" class="card bg-dark">
+                            <div class="card-body">
+                                <pre class="text-white mb-0" id="logText"></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        $('.chosen-select').chosen({
+            width: '100%',
+            search_contains: true,
+            placeholder_text_single: "Selecciona una ubicación"
+        });
+    });
+
+    function searchJobs() {
+        const keywords = $('#keywords').val();
+        const location = $('#location').val();
+        
+        if (!keywords) {
+            alert('Por favor, introduce palabras clave para buscar');
+            return;
+        }
+
+        $('#searchResults').hide();
+        $('#logText').text('');
+        $('#resultsList').empty();
+
+        $.ajax({
+            url: '{% url "jobs:search_jobs" %}',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                keywords: keywords,
+                location: location
+            }),
+            success: function(response) {
+                if (response.success) {
+                    $('#logText').append('Búsqueda completada: ' + response.message + '\n');
+                    if (response.search_id) {
+                        setTimeout(() => {
+                            window.location.href = '{% url "jobs:dashboard" %}';
+                        }, 2000);
+                    }
+                } else {
+                    $('#logText').append('Error: ' + response.message + '\n');
+                }
+            },
+            error: function(xhr, status, error) {
+                $('#logText').append('Error en la búsqueda: ' + error + '\n');
+            }
+        });
+    }
+
+    function deleteAllJobs() {
+        if (confirm('¿Estás seguro de que quieres borrar todas las ofertas de InfoJobs?')) {
+            $.ajax({
+                url: '{% url "jobs:delete_all_jobs" %}',
+                method: 'POST',
+                success: function(response) {
+                    if (response.success) {
+                        alert(response.message);
+                        location.reload();
+                    } else {
+                        alert('Error: ' + response.message);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    alert('Error al borrar las ofertas: ' + error);
+                }
+            });
+        }
+    }
+</script>
+{% endblock %} 
