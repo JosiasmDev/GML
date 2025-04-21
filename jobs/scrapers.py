@@ -229,24 +229,8 @@ class InfoJobsScraper:
         time.sleep(random.uniform(min_seconds, max_seconds))
 
     def take_screenshot(self, name="error"):
-        """Toma una captura de pantalla y la guarda en la carpeta screenshots"""
-        try:
-            # Crear directorio de screenshots si no existe
-            screenshot_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'screenshots')
-            if not os.path.exists(screenshot_dir):
-                os.makedirs(screenshot_dir)
-            
-            # Generar nombre de archivo con timestamp
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            filename = f"{name}_{timestamp}.png"
-            filepath = os.path.join(screenshot_dir, filename)
-            
-            # Tomar y guardar screenshot
-            self.driver.save_screenshot(filepath)
-            return filepath
-        except Exception as e:
-            print(f"Error al tomar screenshot: {str(e)}")
-            return None
+        """Método vacío para mantener compatibilidad con llamadas existentes"""
+        return None
 
     def extract_job_details(self, url):
         try:
