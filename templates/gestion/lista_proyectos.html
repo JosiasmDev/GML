@@ -1,0 +1,38 @@
+{% extends 'gestion/base.html' %}
+{% block contenido %}
+<div class="card mb-4">
+    <div class="card-header bg-dark text-white">
+        <h1 class="mb-0 text-uppercase">Proyectos</h1>
+    </div>
+</div>
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        {% for proyecto in proyectos %}
+            <div class="card mb-3">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0 text-uppercase">
+                        <a href="{% url 'vista_proyecto' proyecto.id %}" class="text-white text-decoration-none">{{ proyecto.titulo }}</a>
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="card mb-2">
+                        <div class="card-header bg-info text-white">
+                            <h5 class="mb-0">Usuarios Asignados</h5>
+                        </div>
+                        <div class="card-body">
+                            <p>
+                                {% for usuario in proyecto.usuarios.all %}
+                                    {{ usuario.username }}{% if not forloop.last %}, {% endif %}
+                                {% empty %}
+                                    Ninguno
+                                {% endfor %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+        <a href="{% url 'crear_proyecto' %}" class="btn btn-primary w-100">Crear Proyecto</a>
+    </div>
+</div>
+{% endblock %}

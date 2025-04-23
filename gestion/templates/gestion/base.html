@@ -1,0 +1,71 @@
+{% extends 'jobs/base.html' %}
+{% load chat_tags %}
+
+{% block content %}
+<div class="main-container">
+    <div class="content-area">
+        {% block contenido %}{% endblock %}
+    </div>
+    {% if user.is_authenticated %}
+        <div class="chat-container">
+            <h3>Mensajes</h3>
+            <button class="btn btn-primary w-100 mb-3" type="button" data-bs-toggle="collapse" data-bs-target="#nuevoMensaje" aria-expanded="false" aria-controls="nuevoMensaje">
+                <i class="fas fa-plus me-1"></i> Nuevo Mensaje
+            </button>
+            <div class="collapse mb-3" id="nuevoMensaje">
+                <form method="post" action="{% url 'enviar_mensaje_privado' %}" class="p-3 rounded">
+                    {% csrf_token %}
+                    <select name="destinatario" class="form-control mb-2" required>
+                        {% for usuario in todos_los_usuarios %}
+                            <option value="{{ usuario.id }}">{{ usuario.username }}</option>
+                        {% endfor %}
+                    </select>
+                    <textarea name="contenido" class="form-control mb-2" rows="2" placeholder="Escribe un mensaje..."></textarea>
+                    <button type="submit" class="btn btn-primary w-100">Enviar</button>
+                </form>
+            </div>
+            <ul class="list-group mb-3">
+                {% for usuario in usuarios_conversados %}
+                    <li class="list-group-item {% if usuario.id|stringformat:'s' == conversacion_con %}active{% endif %} {% if usuarios_con_mensajes_no_leidos|lookup:usuario.id %}text-warning{% endif %}">
+                        <button class="btn btn-success btn-sm me-2" onclick="window.location.href='?con={{ usuario.id }}'">
+                            {{ usuario.username }}
+                            {% if usuarios_con_mensajes_no_leidos|lookup:usuario.id %}
+                                <span class="badge bg-warning text-dark">Nuevo</span>
+                            {% endif %}
+                        </button>
+                        <a href="{% url 'borrar_chat' usuario.id %}" class="btn btn-sm btn-danger float-end" onclick="return confirm('¿Seguro que quieres borrar este chat?');">Borrar</a>
+                    </li>
+                {% endfor %}
+            </ul>
+            {% if mensajes_conversacion %}
+                <div class="chat-messages">
+                    <ul class="list-group">
+                        {% for mensaje in mensajes_conversacion %}
+                            <li class="list-group-item {% if mensaje.remitente == user %}text-end{% endif %}">
+                                <div>
+                                    <strong>{{ mensaje.remitente.username }}</strong>: {{ mensaje.contenido }} 
+                                    <small class="text-muted">({{ mensaje.fecha_envio|date:"H:i" }})</small>
+                                </div>
+                                {% if mensaje.remitente == user %}
+                                    <div class="mt-1">
+                                        <a href="{% url 'editar_mensaje' mensaje.id %}" class="btn btn-sm btn-warning me-2">Editar</a>
+                                        <a href="{% url 'eliminar_mensaje' mensaje.id %}" class="btn btn-sm btn-danger" onclick="return confirm('¿Seguro que quieres eliminar este mensaje?');">Eliminar</a>
+                                    </div>
+                                {% endif %}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <form method="post" action="{% url 'enviar_mensaje_privado' %}" class="mt-3">
+                    {% csrf_token %}
+                    <input type="hidden" name="destinatario" value="{{ conversacion_con }}">
+                    <textarea name="contenido" class="form-control mb-2" rows="2" placeholder="Escribe un mensaje..."></textarea>
+                    <button type="submit" class="btn btn-primary w-100">Enviar</button>
+                </form>
+            {% else %}
+                <p class="text-muted">Selecciona un usuario para ver los mensajes.</p>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

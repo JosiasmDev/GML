@@ -336,200 +336,34 @@ a:hover {
     color: #0d6efd;
 }
 </style>
-{% endblock %}
 
-{% block extra_js %}
 <script>
-$(document).ready(function() {
-    // Inicializar el selector de provincias con Chosen
-    $("#of_provincia").chosen({
-        width: "100%",
-        no_results_text: "No se encontraron resultados para",
-        placeholder_text_single: "Selecciona una ubicación",
-        search_contains: true
-    });
-    
-    // Manejar el envío del formulario de búsqueda
-    $('#searchForm').on('submit', function(e) {
-        e.preventDefault();
-        prepareSearch();
-    });
-    
-    // Función prepareSearch
-    function prepareSearch() {
-        const keywords = $('#keywords').val();
-        const locationValue = $('#of_provincia').val();
-        
-        // Validar que se hayan ingresado palabras clave
-        if (!keywords || keywords.trim() === '') {
-            showError('Por favor, introduce algunas palabras clave para buscar');
-            return;
-        }
-        
-        // Mostrar indicador de carga
-        $('#searchOffers').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Buscando...');
-        
-        $.ajax({
-            url: "{% url 'jobs:search_jobs' %}",
-            method: 'POST',
-            contentType: 'application/json',
-            data: JSON.stringify({
-                keywords: keywords,
-                location: locationValue
-            }),
-            success: function(response) {
-                console.log('Respuesta del servidor:', response);
-                if (response.success) {
-                    // Recargar la página para mostrar los resultados
-                    window.location.reload();
-                } else {
-                    showError(response.message || 'Error en la búsqueda');
-                    // Restaurar el botón
-                    $('#searchOffers').prop('disabled', false).html('<i class="fas fa-search"></i> Buscar');
-                }
-            },
-            error: function(xhr, status, error) {
-                console.error('Error en la petición:', xhr.responseText, status, error);
-                showError('Error al realizar la búsqueda: ' + error);
-                // Restaurar el botón
-                $('#searchOffers').prop('disabled', false).html('<i class="fas fa-search"></i> Buscar');
-            }
-        });
-    }
-    
-    // Función para mostrar mensajes de error
-    function showError(message) {
-        // Crear el elemento de alerta si no existe
-        let alertDiv = $('#searchAlert');
-        if (alertDiv.length === 0) {
-            alertDiv = $('<div id="searchAlert" class="alert alert-danger alert-dismissible fade show" role="alert">' +
-                '<span class="message"></span>' +
-                '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>' +
-                '</div>');
-            $('.search-container').prepend(alertDiv);
-        }
-        
-        // Actualizar el mensaje y mostrar la alerta
-        alertDiv.find('.message').text(message);
-        alertDiv.show();
-        
-        // Ocultar la alerta después de 5 segundos
-        setTimeout(function() {
-            alertDiv.fadeOut();
-        }, 5000);
-    }
-
-    // Manejar el toggle de favoritos
-    $('.toggle-favorite').on('click', function() {
-        const jobCard = $(this).closest('.job-card');
-        const jobId = jobCard.data('job-id');
-        
-        $.ajax({
-            url: `/job/${jobId}/toggle-favorite/`,
-            method: 'POST',
-            success: function(response) {
-                if (response.success) {
-                    const icon = jobCard.find('.toggle-favorite i');
-                    icon.toggleClass('fa-star fa-star-o');
-                }
-            }
-        });
-    });
-    
-    // Manejar la eliminación de ofertas
-    $('.delete-job').on('click', function() {
-        if (!confirm('¿Estás seguro de que quieres eliminar esta oferta?')) {
-            return;
-        }
-        
-        const jobCard = $(this).closest('.job-card');
-        const jobId = jobCard.data('job-id');
-        
-        $.ajax({
-            url: `/job/${jobId}/delete/`,
-            method: 'POST',
-            success: function(response) {
-                if (response.success) {
-                    jobCard.fadeOut(function() {
-                        $(this).remove();
-                    });
-                }
-            }
-        });
-    });
-
+document.addEventListener('DOMContentLoaded', function() {
     // Función para borrar todas las ofertas
-    $('#deleteAllButton').click(function() {
+    document.getElementById('deleteAllButton').addEventListener('click', function() {
         if (confirm('¿Estás seguro de que quieres borrar todas las ofertas? Esta acción no se puede deshacer.')) {
-            $.ajax({
-                url: '/delete-all/',
-                type: 'POST',
-                data: {
-                    'csrfmiddlewaretoken': '{{ csrf_token }}'
-                },
-                success: function(response) {
-                    if (response.success) {
-                        alert(response.message);
-                        location.reload();
-                    } else {
-                        alert('Error: ' + response.message);
-                    }
-                },
-                error: function() {
-                    alert('Error al comunicarse con el servidor');
+            fetch('{% url "jobs:delete_all_jobs" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
                 }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    location.reload();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(error => {
+                alert('Error al comunicarse con el servidor');
+                console.error('Error:', error);
             });
         }
     });
-
-    // Manejar cambios en los filtros
-    $('#filter_by, #order_by').on('change', function() {
-        $('#filterForm').submit();
-    });
-
-    // Inicializar los filtros con los valores actuales
-    if ('{{ filter_by }}' && '{{ filter_value }}') {
-        $(`#filter_${'{{ filter_by }}'}`).val('{{ filter_value }}');
-    }
 });
-
-// Función para aplicar filtros
-function applyFilter(field) {
-    const value = $(`#filter_${field}`).val();
-    const currentUrl = new URL(window.location.href);
-    currentUrl.searchParams.set('filter_by', field);
-    currentUrl.searchParams.set('filter_value', value);
-    currentUrl.searchParams.set('page', '1'); // Resetear a la primera página
-    window.location.href = currentUrl.toString();
-}
-
-// Función para ordenar la tabla
-function sortTable(field) {
-    const currentUrl = new URL(window.location.href);
-    const currentOrder = currentUrl.searchParams.get('order_by');
-    
-    // Determinar el nuevo orden
-    let newOrder;
-    if (currentOrder === field) {
-        newOrder = `-${field}`; // Cambiar a orden descendente
-    } else if (currentOrder === `-${field}`) {
-        newOrder = field; // Cambiar a orden ascendente
-    } else {
-        newOrder = field; // Ordenar por primera vez
-    }
-    
-    currentUrl.searchParams.set('order_by', newOrder);
-    currentUrl.searchParams.set('page', '1'); // Resetear a la primera página
-    window.location.href = currentUrl.toString();
-}
-
-// Función para limpiar todos los filtros
-function clearFilters() {
-    const currentUrl = new URL(window.location.href);
-    currentUrl.searchParams.delete('filter_by');
-    currentUrl.searchParams.delete('filter_value');
-    currentUrl.searchParams.set('page', '1');
-    window.location.href = currentUrl.toString();
-}
 </script>
 {% endblock %} 

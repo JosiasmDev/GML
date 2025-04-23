@@ -1,0 +1,9 @@
+{% extends 'gestion/base.html' %}
+{% block contenido %}
+<h1>Enviar Mensaje en {{ proyecto.titulo }}</h1>
+<form method="post" onsubmit="return confirmarAccion('¿Seguro que quieres enviar este mensaje?')">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">Enviar</button>
+</form>
+{% endblock %}

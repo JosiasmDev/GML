@@ -119,6 +119,7 @@ def search_jobs(request):
             keywords = data.get('keywords', '')
             location = data.get('location', '0')
             source = data.get('source', 'InfoJobs')  # Por defecto InfoJobs
+            limit = int(data.get('limit', 5))  # Obtener el límite, por defecto 5
             
             if not keywords:
                 return JsonResponse({
@@ -148,7 +149,7 @@ def search_jobs(request):
             else:
                 scraper = InfoJobsScraper()
             
-            result = scraper.search_jobs(keywords, location)
+            result = scraper.search_jobs(keywords, location, limit)
             
             if result['success']:
                 return JsonResponse({
@@ -243,7 +244,7 @@ def linkedin_search(request):
         'favorite_jobs': favorite_jobs,
     }
     
-    return render(request, 'jobs/linkedin_search.html', context)
+    return render(request, 'jobs/linkedin.html', context)
 
 @login_required
 def tecnoempleo_search(request):
@@ -259,4 +260,4 @@ def tecnoempleo_search(request):
         'favorite_jobs': favorite_jobs,
     }
     
-    return render(request, 'jobs/tecnoempleo_search.html', context)
+    return render(request, 'jobs/tecnoempleo.html', context)

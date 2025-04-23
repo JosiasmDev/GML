@@ -1,0 +1,35 @@
+{% extends 'gestion/base.html' %}
+{% block contenido %}
+<h1 class="text-center">Usuarios</h1>
+<ul class="list-group">
+    {% for usuario in usuarios %}
+        <li class="list-group-item bg-secondary text-light">
+            {{ usuario.username }}
+            <ul>
+                {% for grupo in usuario.grupos.all %}
+                    <li>{{ grupo.nombre }} ({{ grupo.proyecto.titulo }})</li>
+                {% endfor %}
+            </ul>
+        </li>
+    {% endfor %}
+</ul>
+<form method="post" class="mt-3 bg-secondary p-4 rounded">
+    {% csrf_token %}
+    <select name="usuario" class="form-control mb-2">
+        {% for usuario in usuarios %}
+            <option value="{{ usuario.id }}">{{ usuario.username }}</option>
+        {% endfor %}
+    </select>
+    <select name="grupo" class="form-control mb-2">
+        {% for grupo in grupos %}
+            <option value="{{ grupo.id }}">{{ grupo.nombre }} ({{ grupo.proyecto.titulo }})</option>
+        {% endfor %}
+    </select>
+    <select name="rol" class="form-control mb-2">
+        <option value="administrador">Administrador</option>
+        <option value="miembro">Miembro</option>
+        <option value="invitado">Invitado</option>
+    </select>
+    <button type="submit" name="accion" value="agregar" class="btn btn-primary w-100">Asignar a Grupo</button>
+</form>
+{% endblock %}

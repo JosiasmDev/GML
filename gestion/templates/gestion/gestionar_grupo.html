@@ -1,0 +1,58 @@
+{% extends 'gestion/base.html' %}
+{% block contenido %}
+<div class="card mb-3">
+    <div class="card-header bg-dark text-white">
+        <h1 class="mb-0 text-uppercase">Gestionar {{ grupo.nombre }}</h1>
+    </div>
+    <div class="card-body">
+        <form method="post" class="d-flex justify-content-between align-items-center">
+            {% csrf_token %}
+            <input type="text" name="nombre" value="{{ grupo.nombre }}" class="form-control w-50" required>
+            <div>
+                <button type="submit" name="accion" value="editar" class="btn btn-primary me-2">Editar Nombre</button>
+                <button type="submit" name="accion" value="eliminar" class="btn btn-danger" onclick="return confirm('¿Seguro que quieres eliminar este grupo?');">Eliminar Grupo</button>
+            </div>
+        </form>
+    </div>
+</div>
+<ul class="list-group mb-3">
+    {% for item in miembros_con_roles %}
+        <li class="list-group-item">
+            <div class="d-flex justify-content-between align-items-center">
+                <span>{{ item.miembro.username }} - {{ item.rol }}</span>
+                <form method="post" class="d-inline">
+                    {% csrf_token %}
+                    <input type="hidden" name="usuario" value="{{ item.miembro.id }}">
+                    <select name="rol" class="form-control d-inline w-auto me-2">
+                        <option value="administrador" {% if item.rol == 'administrador' %}selected{% endif %}>Administrador</option>
+                        <option value="miembro" {% if item.rol == 'miembro' %}selected{% endif %}>Miembro</option>
+                        <option value="invitado" {% if item.rol == 'invitado' %}selected{% endif %}>Invitado</option>
+                    </select>
+                    <button type="submit" name="accion" value="cambiar_rol" class="btn btn-sm btn-primary me-2">Cambiar</button>
+                    <button type="submit" name="accion" value="quitar" class="btn btn-sm btn-danger">Quitar</button>
+                </form>
+            </div>
+        </li>
+    {% endfor %}
+</ul>
+<div class="card">
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            <select name="usuario" class="form-control mb-2">
+                {% for usuario in usuarios %}
+                    {% if usuario not in grupo.miembros.all %}
+                        <option value="{{ usuario.id }}">{{ usuario.username }}</option>
+                    {% endif %}
+                {% endfor %}
+            </select>
+            <select name="rol" class="form-control mb-2">
+                <option value="administrador">Administrador</option>
+                <option value="miembro">Miembro</option>
+                <option value="invitado">Invitado</option>
+            </select>
+            <button type="submit" name="accion" value="agregar" class="btn btn-primary w-100">Agregar</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

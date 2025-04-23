@@ -1,0 +1,38 @@
+{% extends 'gestion/base.html' %}
+{% block contenido %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-dark text-white">
+                <h1 class="mb-0 text-uppercase">Crear Proyecto</h1>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="id_titulo" class="form-label">Título:</label>
+                        {{ form.titulo }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="id_descripcion" class="form-label">Descripción:</label>
+                        {{ form.descripcion }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="id_fecha_inicio" class="form-label">Fecha de Inicio:</label>
+                        {{ form.fecha_inicio }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="id_fecha_fin" class="form-label">Fecha de Fin:</label>
+                        {{ form.fecha_fin }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Usuarios:</label>
+                        {{ form.usuarios }}
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Crear Proyecto</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

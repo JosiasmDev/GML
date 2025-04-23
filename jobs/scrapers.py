@@ -515,653 +515,236 @@ class InfoJobsScraper:
             
         return datetime(year, month, day)
 
-    def search_jobs(self, keywords, location="0"):
+    def search_jobs(self, keywords, location="", limit=5):
+        """
+        Busca ofertas de trabajo en InfoJobs
+        
+        Args:
+            keywords (str): Palabras clave para la búsqueda
+            location (str): Código de la provincia (opcional)
+            limit (int): Límite de ofertas a procesar
+        """
         try:
-            # Obtener el nombre de la ubicación del mapeo
-            location_name = self.province_map.get(location, "Toda España")
-            logger.info(f"Iniciando búsqueda en {location_name} (código: {location})")
+            logger.info(f"🔍 Iniciando búsqueda en InfoJobs")
+            logger.info(f"📝 Palabras clave: {keywords}")
+            logger.info(f"📍 Ubicación: {location}")
+            logger.info(f"📊 Límite de resultados: {limit}")
             
-            # Navegar directamente usando el driver de Selenium
-            logger.info("Navegando a la página principal de InfoJobs...")
-            self.driver.get("https://www.infojobs.net")
-            self.random_sleep(2, 3)
+            # Navegar a la página principal
+            self.driver.get(self.BASE_URL)
+            logger.info("✅ Página principal cargada")
             
-            # Esperar a que la página se cargue completamente
-            logger.info("Esperando a que la página se cargue completamente...")
-            self.random_sleep(3, 5)
-            
-            # Verificar la URL actual
-            current_url = self.driver.current_url
-            logger.info(f"URL actual después de la navegación: {current_url}")
-            
-            # Manejar el botón de cookies si está presente
-            logger.info("Buscando el botón de cookies...")
-            cookie_button_selectors = [
-                "#didomi-notice-agree-button",
-                "button[id*='cookie-accept']",
-                "button[id*='cookie-consent']",
-                "button[class*='cookie-accept']",
-                "button[class*='cookie-consent']",
-                "button[class*='cookies-accept']",
-                ".cookie-accept-button",
-                ".cookie-consent-button",
-                "#accept-cookies",
-                "#acceptCookies",
-                "button[aria-label*='Aceptar']",
-                "button[aria-label*='aceptar']",
-                "button[aria-label*='Cookies']",
-                "button[aria-label*='cookies']",
-                ".didomi-button-highlight",
-                ".didomi-button"
-            ]
-            
-            for selector in cookie_button_selectors:
-                logger.info(f"Intentando selector de cookies: {selector}")
-                try:
-                    cookie_button = self.wait_for_clickable(selector, timeout=5)
-                    if cookie_button:
-                        logger.info("Botón de cookies encontrado, haciendo clic...")
-                        cookie_button.click()
-                        self.random_sleep(2, 3)  # Aumentamos el tiempo de espera después de cerrar las cookies
-                        break
-                except Exception as e:
-                    logger.info(f"No se encontró el botón de cookies con selector {selector}: {str(e)}")
-                    continue
-            
-            # Buscar el campo de búsqueda con diferentes selectores
-            logger.info("Buscando el campo de búsqueda...")
-            search_input = None
-            
-            # Intentar diferentes selectores para el campo de búsqueda
-            search_selectors = [
-                "input[name='palabra']",
-                "input#palabra",
-                "input[placeholder*='Puesto, empresa o palabra clave']",
-                "input.ui-autocomplete-input",
-                "input[name='keyword']",
-                "input[placeholder*='buscar']",
-                "input[placeholder*='Buscar']",
-                "input[placeholder*='empleo']",
-                "input[placeholder*='Empleo']",
-                "input.ij-SearchBar-input",
-                "input.search-input",
-                "input.search",
-                "#keyword",
-                ".ij-SearchBar input",
-                ".search-bar input",
-                "input[type='text']",
-                "input[aria-label*='buscar']",
-                "input[aria-label*='Buscar']"
-            ]
-            
-            for selector in search_selectors:
-                logger.info(f"Intentando selector: {selector}")
-                search_input = self.wait_for_element(selector, timeout=5)
-                if search_input:
-                    logger.info(f"Campo de búsqueda encontrado con selector: {selector}")
-                    break
-            
+            # Esperar a que cargue el formulario de búsqueda
+            search_input = WebDriverWait(self.driver, 10).until(
+                EC.presence_of_element_located((By.ID, "keywordInput"))
+            )
             if not search_input:
-                logger.error("No se encontró el campo de búsqueda")
-                self.take_screenshot("search_field_not_found")
-                return {
-                    'success': False,
-                    'error': 'No se encontró el campo de búsqueda'
-                }
+                raise Exception("No se pudo encontrar el campo de búsqueda")
             
-            # Limpiar el campo de búsqueda y escribir las palabras clave
-            logger.info(f"Escribiendo palabras clave: {keywords}")
-            search_input.clear()
+            # Hacer scroll hasta el campo de búsqueda
+            self.driver.execute_script("""
+                var element = arguments[0];
+                var headerOffset = 100;
+                var elementPosition = element.getBoundingClientRect().top;
+                var offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+                window.scrollTo({
+                    top: offsetPosition,
+                    behavior: 'smooth'
+                });
+            """, search_input)
+            time.sleep(2)  # Esperar a que se complete el scroll
+            
+            # Introducir palabras clave
+            search_input.clear()  # Limpiar el campo primero
             search_input.send_keys(keywords)
-            self.random_sleep(1, 2)
+            logger.info("✅ Palabras clave introducidas")
             
-            # Buscar el campo de ubicación con diferentes selectores
-            logger.info("Buscando el campo de ubicación...")
-            location_input = None
-            
-            # Intentar diferentes selectores para el campo de ubicación
-            location_selectors = [
-                "select#of_provincia",
-                "select[name='of_provincia']",
-                "select.chosen-select",
-                ".chosen-container input",
-                ".chosen-search input",
-                "input[name='provinceIds']",
-                "input[placeholder*='ubicación']",
-                "input[placeholder*='Ubicación']",
-                "input[placeholder*='localidad']",
-                "input[placeholder*='Localidad']",
-                "input.ij-SearchBar-location-input",
-                "input.location-input",
-                "input.location"
-            ]
-            
-            for selector in location_selectors:
-                logger.info(f"Intentando selector de ubicación: {selector}")
-                location_input = self.wait_for_element(selector, timeout=5)
-                if location_input:
-                    logger.info(f"Campo de ubicación encontrado con selector: {selector}")
-                    break
-            
-            if location_input:
-                # Si es un select, usar el método select_by_value
-                if location_input.tag_name == 'select':
-                    logger.info(f"Seleccionando ubicación por valor: {location}")
-                    try:
-                        # Intentar usar Select directamente
-                        from selenium.webdriver.support.ui import Select
-                        select = Select(location_input)
-                        select.select_by_value(location)
-                        logger.info("Ubicación seleccionada usando Select")
-                    except Exception as e:
-                        logger.info(f"Error al usar Select directamente: {str(e)}")
-                        logger.info("Intentando método alternativo para Chosen...")
-                        
-                        # Método alternativo para Chosen
-                        try:
-                            # Hacer clic en el contenedor de Chosen para abrir el desplegable
-                            chosen_container = self.driver.find_element(By.CSS_SELECTOR, f"#{location_input.get_attribute('id')}_chosen")
-                            chosen_container.click()
-                            self.random_sleep(1, 2)
-                            
-                            # Buscar la opción por texto
-                            option_text = self.province_map.get(location, "Toda España")
-                            option = self.driver.find_element(By.XPATH, f"//li[contains(@class, 'active-result') and contains(text(), '{option_text}')]")
-                            option.click()
-                            logger.info(f"Ubicación seleccionada usando método alternativo: {option_text}")
-                        except Exception as e2:
-                            logger.error(f"Error al usar método alternativo: {str(e2)}")
-                            # Intentar un último método usando JavaScript
-                            try:
-                                self.driver.execute_script(f"document.getElementById('{location_input.get_attribute('id')}').value = '{location}';")
-                                self.driver.execute_script(f"document.getElementById('{location_input.get_attribute('id')}').dispatchEvent(new Event('change'));")
-                                logger.info("Ubicación seleccionada usando JavaScript")
-                            except Exception as e3:
-                                logger.error(f"Error al usar JavaScript: {str(e3)}")
-                                return {
-                                    'success': False,
-                                    'error': f'No se pudo seleccionar la ubicación: {str(e)}'
-                                }
+            # Si se especifica una ubicación, seleccionarla
+            if location:
+                # Esperar a que el selector de ubicación esté presente
+                location_select = WebDriverWait(self.driver, 10).until(
+                    EC.presence_of_element_located((By.ID, "locationInput"))
+                )
+                
+                if location_select:
+                    # Hacer scroll hasta el selector usando JavaScript
+                    self.driver.execute_script("""
+                        var element = arguments[0];
+                        var headerOffset = 100;
+                        var elementPosition = element.getBoundingClientRect().top;
+                        var offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+                        window.scrollTo({
+                            top: offsetPosition,
+                            behavior: 'smooth'
+                        });
+                    """, location_select)
+                    time.sleep(2)
                     
-                    self.random_sleep(1, 2)
-                else:
-                    # Limpiar el campo de ubicación y escribir la ubicación
-                    logger.info(f"Escribiendo ubicación: {location_name}")
-                    location_input.clear()
-                    location_input.send_keys(location_name)
-                    self.random_sleep(1, 2)
+                    # Seleccionar la ubicación
+                    location_select.click()
+                    time.sleep(1)
                     
-                    # Esperar a que aparezcan las sugerencias y seleccionar la primera
-                    suggestions_selectors = [
-                        ".chosen-results",
-                        ".ij-SearchBar-suggestions",
-                        ".search-suggestions",
-                        ".suggestions",
-                        ".location-suggestions",
-                        ".autocomplete-suggestions"
-                    ]
-                    
-                    suggestions = None
-                    for selector in suggestions_selectors:
-                        logger.info(f"Intentando selector de sugerencias: {selector}")
-                        suggestions = self.wait_for_element(selector, timeout=5)
-                        if suggestions:
-                            logger.info(f"Sugerencias encontradas con selector: {selector}")
-                            break
-                    
-                    if suggestions:
-                        suggestion_item_selectors = [
-                            ".chosen-results li.active-result",
-                            ".ij-SearchBar-suggestion-item",
-                            ".suggestion-item",
-                            ".location-suggestion",
-                            "li.suggestion",
-                            "li.autocomplete-item"
-                        ]
-                        
-                        first_suggestion = None
-                        for selector in suggestion_item_selectors:
-                            logger.info(f"Intentando selector de item de sugerencia: {selector}")
-                            first_suggestion = self.wait_for_clickable(selector, timeout=5)
-                            if first_suggestion:
-                                logger.info(f"Item de sugerencia encontrado con selector: {selector}")
-                                break
-                        
-                        if first_suggestion:
-                            first_suggestion.click()
-                            self.random_sleep(1, 2)
-            
-            # Buscar el botón de búsqueda con diferentes selectores
-            logger.info("Buscando el botón de búsqueda...")
-            search_button = None
-            
-            # Intentar diferentes selectores para el botón de búsqueda
-            button_selectors = [
-                "button[type='submit']",
-                "input[type='submit']",
-                "button.ij-SearchBar-submit",
-                "button.search-button",
-                "button.search",
-                "input.ij-SearchBar-submit",
-                "input.search-button",
-                "input.search",
-                "button.btn-search",
-                "button.btn-search-primary",
-                "button.btn-primary",
-                "button.btn",
-                "button:contains('Buscar')",
-                "button:contains('buscar')",
-                "input:contains('Buscar')",
-                "input:contains('buscar')"
-            ]
-            
-            for selector in button_selectors:
-                logger.info(f"Intentando selector de botón: {selector}")
-                search_button = self.wait_for_clickable(selector, timeout=5)
-                if search_button:
-                    logger.info(f"Botón de búsqueda encontrado con selector: {selector}")
-                    break
-            
-            if not search_button:
-                # Intentar encontrar el botón por texto
-                logger.info("Intentando encontrar el botón por texto...")
-                try:
-                    search_button = self.driver.find_element(By.XPATH, "//button[contains(text(), 'Buscar') or contains(text(), 'buscar')]")
-                    logger.info("Botón de búsqueda encontrado por texto")
-                except NoSuchElementException:
-                    try:
-                        search_button = self.driver.find_element(By.XPATH, "//input[@value='Buscar' or @value='buscar']")
-                        logger.info("Botón de búsqueda encontrado por valor")
-                    except NoSuchElementException:
-                        logger.error("No se encontró el botón de búsqueda")
-                        self.take_screenshot("search_button_not_found")
-                        return {
-                            'success': False,
-                            'error': 'No se encontró el botón de búsqueda'
-                        }
+                    # Buscar y seleccionar la opción
+                    location_option = WebDriverWait(self.driver, 10).until(
+                        EC.presence_of_element_located((By.XPATH, f"//option[contains(text(), '{location}')]"))
+                    )
+                    location_option.click()
+                    logger.info(f"✅ Ubicación seleccionada: {location}")
             
             # Hacer clic en el botón de búsqueda
-            logger.info("Haciendo clic en el botón de búsqueda...")
-            search_button.click()
-            
-            # Esperar a que se carguen los resultados
-            logger.info("Esperando a que se carguen los resultados...")
-            self.random_sleep(3, 5)
-            
-            # Imprimir la URL actual para depuración
-            current_url = self.driver.current_url
-            logger.info(f"URL después de la búsqueda: {current_url}")
-            
-            # Intentar diferentes selectores para detectar cuando la página está cargada
-            selectors = [
-                ".ij-ResultsOverview",
-                "h1.ij-ResultsOverview",
-                "#main-heading",
-                ".ij-SearchResults-count",
-                ".ij-OfferCardContent",
-                ".ij-OfferCardContent-description",
-                "#filterSideBar",
-                ".ij-SearchResults",
-                ".ij-Page",
-                ".search-results",
-                ".results-count",
-                ".job-list",
-                ".job-card"
-            ]
-            
-            # Intentar hasta 3 veces con diferentes tiempos de espera
-            max_retries = 3
-            for retry in range(max_retries):
-                logger.info(f"Intento {retry + 1} de {max_retries}")
+            try:
+                search_button = WebDriverWait(self.driver, 10).until(
+                    EC.element_to_be_clickable((By.CSS_SELECTOR, "button.btn.btn-primary"))
+                )
                 
-                element_found = False
-                for selector in selectors:
-                    logger.info(f"Intentando encontrar el elemento: {selector}")
-                    element = self.wait_for_element(selector, timeout=20 + (retry * 10))
-                    if element:
-                        element_found = True
-                        logger.info(f"Elemento encontrado: {selector}")
-                        break
-                
-                if element_found:
-                    break
-                
-                if retry < max_retries - 1:
-                    wait_time = 5 + (retry * 5)
-                    logger.info(f"Reintentando en {wait_time} segundos...")
-                    time.sleep(wait_time)
-                    self.driver.refresh()
-            
-            if not element_found:
-                logger.error("No se pudo detectar ningún elemento en la página después de varios intentos")
-                self.take_screenshot("results_page_not_loaded")
-                return {
-                    'success': False,
-                    'error': 'No se pudo cargar la página de resultados'
-                }
-            
-            # Dar tiempo adicional para que se cargue todo el contenido
-            logger.info("Esperando a que se cargue todo el contenido...")
-            self.random_sleep(5, 8)  # Aumentado el tiempo de espera
-            
-            # Hacer scroll gradual para cargar todo el contenido
-            logger.info("Haciendo scroll gradual para cargar todo el contenido...")
-            total_height = int(self.driver.execute_script("return document.body.scrollHeight"))
-            current_position = 0
-            scroll_step = 300  # Scroll de 300px cada vez
-            scroll_delay = 1  # Esperar 1 segundo entre scrolls
-            
-            while current_position < total_height:
-                # Hacer scroll
-                self.driver.execute_script(f"window.scrollTo(0, {current_position});")
-                current_position += scroll_step
-                time.sleep(scroll_delay)
-                
-                # Actualizar la altura total en caso de que se haya cargado más contenido
-                new_height = int(self.driver.execute_script("return document.body.scrollHeight"))
-                if new_height > total_height:
-                    total_height = new_height
-            
-            # Scroll final al final de la página
-            self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-            self.random_sleep(2, 3)  # Esperar después del scroll final
-            
-            # Obtener el HTML de la página
-            html = self.driver.page_source
-            soup = BeautifulSoup(html, 'html.parser')
-            
-            # Extraer el número total de ofertas
-            total_offers = 0
-            results_count_selectors = [
-                ".ij-ResultsOverview",
-                "h1.ij-ResultsOverview",
-                "#main-heading",
-                ".ij-SearchResults-count",
-                ".results-count",
-                ".search-results-count",
-                ".count-results"
-            ]
-            
-            results_count_elem = None
-            for selector in results_count_selectors:
-                results_count_elem = soup.select_one(selector)
-                if results_count_elem:
-                    break
-            
-            if results_count_elem:
-                count_text = results_count_elem.text.strip()
-                logger.info(f"Texto del contador de resultados: {count_text}")
-                # Buscar patrones como "465 ofertas de python en España" o "465 ofertas"
-                count_match = re.search(r'(\d+)\s+ofertas', count_text)
-                if count_match:
-                    total_offers = int(count_match.group(1))
-                    logger.info(f"Total de ofertas encontradas: {total_offers}")
-            
-            # Calcular el número total de páginas (20 ofertas por página)
-            total_pages = (total_offers + 19) // 20
-            logger.info(f"Total de páginas a procesar: {total_pages}")
-            
-            all_job_cards = []
-            for page in range(1, total_pages + 1):
-                logger.info(f"Procesando página {page} de {total_pages}")
-                
-                # Esperar a que se carguen los resultados
-                self.random_sleep(3, 5)
-                
-                # Hacer scroll gradual en cada página
-                logger.info("Haciendo scroll gradual en la página...")
-                total_height = int(self.driver.execute_script("return document.body.scrollHeight"))
-                current_position = 0
-                scroll_step = 300
-                scroll_delay = 1
-                
-                while current_position < total_height:
-                    self.driver.execute_script(f"window.scrollTo(0, {current_position});")
-                    current_position += scroll_step
-                    time.sleep(scroll_delay)
-                    
-                    # Actualizar la altura total en caso de que se haya cargado más contenido
-                    new_height = int(self.driver.execute_script("return document.body.scrollHeight"))
-                    if new_height > total_height:
-                        total_height = new_height
-                
-                # Scroll final al final de la página
-                self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-                self.random_sleep(2, 3)
-                
-                # Extraer todas las ofertas de la página actual usando Selenium
-                job_cards_selectors = [
-                    ".ij-OfferCard",
-                    ".ij-OfferCardContent-description, .ij-OfferCardContent",
-                    ".job-card",
-                    ".offer-card",
-                    ".search-result-item",
-                    ".job-list-item"
-                ]
-                
-                page_job_cards = []
-                for selector in job_cards_selectors:
+                try:
+                    # Primero intentar con JavaScript
+                    self.driver.execute_script("arguments[0].click();", search_button)
+                    logger.info("✅ Clic realizado con JavaScript")
+                except Exception as js_error:
+                    logger.warning(f"⚠️ Fallo al hacer clic con JavaScript: {str(js_error)}")
+                    # Si falla, intentar con Selenium
                     try:
-                        job_cards = self.driver.find_elements(By.CSS_SELECTOR, selector)
-                        if job_cards:
-                            logger.info(f"Ofertas encontradas en la página {page} con selector: {selector}")
-                            page_job_cards = job_cards
-                            break
-                    except Exception as e:
-                        logger.info(f"Error al buscar ofertas con selector {selector}: {str(e)}")
-                        continue
+                        search_button.click()
+                        logger.info("✅ Clic realizado con Selenium")
+                    except Exception as selenium_error:
+                        logger.error(f"❌ Fallo al hacer clic con Selenium: {str(selenium_error)}")
+                        raise Exception(f"No se pudo hacer clic en el botón: {str(selenium_error)}")
                 
-                logger.info(f"Ofertas encontradas en la página {page}: {len(page_job_cards)}")
+                logger.info("✅ Botón de búsqueda pulsado")
                 
-                # Convertir los elementos de Selenium a BeautifulSoup para procesarlos
-                for job_card in page_job_cards:
-                    try:
-                        # Obtener el HTML del elemento
-                        job_html = job_card.get_attribute('outerHTML')
-                        job_soup = BeautifulSoup(job_html, 'html.parser')
-                        all_job_cards.append(job_soup)
-                    except Exception as e:
-                        logger.error(f"Error al procesar oferta: {str(e)}")
-                        continue
-                
-                # Si no es la última página, hacer clic en el botón siguiente
-                if page < total_pages:
-                    try:
-                        # Intentar encontrar el botón siguiente
-                        next_button = self.driver.find_element(By.CSS_SELECTOR, "button[aria-label='Siguiente']")
-                        if not next_button:
-                            # Intentar encontrar el botón por texto usando XPath
-                            next_button = self.driver.find_element(By.XPATH, "//button[contains(., 'Siguiente')]")
-                            logger.info("Botón siguiente encontrado por texto")
-                        
-                        # Hacer clic en el botón "Siguiente"
-                        logger.info("Haciendo clic en el botón siguiente...")
-                        next_button.click()
-                        
-                        # Esperar a que se carguen los resultados
-                        self.random_sleep(3, 5)
-                    except Exception as e:
-                        logger.error(f"Error al navegar a la siguiente página: {str(e)}")
-                        break
+            except Exception as e:
+                logger.error(f"❌ Error al interactuar con el botón de búsqueda: {str(e)}")
+                raise Exception(f"Error al interactuar con el botón de búsqueda: {str(e)}")
             
-            logger.info(f"Total de ofertas extraídas de todas las páginas: {len(all_job_cards)}")
+            # Esperar a que carguen los resultados
+            logger.info("⏳ Esperando resultados...")
+            time.sleep(5)  # Esperar a que carguen los resultados
             
-            if not all_job_cards:
-                logger.warning("No se encontraron ofertas de trabajo")
-                return {
-                    'success': True,
-                    'count': 0,
-                    'message': 'No se encontraron ofertas de trabajo'
-                }
+            # Obtener el número de ofertas encontradas
+            results_header = self.wait_for_element(By.CSS_SELECTOR, "h1.h4.h6-xs.text-center.my-4")
+            if results_header:
+                logger.info(f"📊 {results_header.text}")
             
-            # Guardar la búsqueda en el historial
+            # Crear un historial de búsqueda
             search_history = SearchHistory.objects.create(
                 keywords=keywords,
-                location=location_name,
+                location=location,
                 source='InfoJobs',
-                results_count=total_offers if total_offers > 0 else len(all_job_cards)
+                results_count=0  # Se actualizará al final
             )
             
-            jobs = []
-            # Primero recopilar todas las URLs y datos básicos
-            for i, card in enumerate(all_job_cards):
-                try:
-                    logger.info(f"Procesando oferta {i+1}/{len(all_job_cards)}")
-                    
-                    # Extraer título y enlace
-                    title_selectors = [
-                        ".ij-OfferCardContent-description-title-link, .ij-OfferCardContent-title-link",
-                        ".job-title a",
-                        ".offer-title a",
-                        ".title a",
-                        "h2 a",
-                        "h3 a"
-                    ]
-                    
-                    title_elem = None
-                    for selector in title_selectors:
-                        title_elem = card.select_one(selector)
-                        if title_elem:
-                            break
-                    
-                    if not title_elem:
-                        logger.warning("No se encontró el elemento del título")
-                        continue
-                    
-                    title = title_elem.text.strip()
-                    url = title_elem.get('href', '')
-                    if url.startswith('//'):
-                        url = 'https:' + url
-                    logger.info(f"Título: {title}")
-                    logger.info(f"URL: {url}")
-                    
-                    # Extraer empresa
-                    company_selectors = [
-                        ".ij-OfferCardContent-description-subtitle-link, .ij-OfferCardContent-subtitle-link",
-                        ".company-name",
-                        ".employer-name",
-                        ".company a",
-                        ".employer a"
-                    ]
-                    
-                    company_elem = None
-                    for selector in company_selectors:
-                        company_elem = card.select_one(selector)
-                        if company_elem:
-                            break
-                    
-                    company = company_elem.text.strip() if company_elem else "Empresa no especificada"
-                    logger.info(f"Empresa: {company}")
-                    
-                    # Extraer ubicación específica de la oferta
-                    location_selectors = [
-                        ".ij-OfferCardContent-description-location, .ij-OfferCardContent-location",
-                        ".location",
-                        ".job-location",
-                        ".offer-location"
-                    ]
-                    
-                    location_elem = None
-                    for selector in location_selectors:
-                        location_elem = card.select_one(selector)
-                        if location_elem:
-                            break
-                    
-                    job_location = location_elem.text.strip() if location_elem else location_name
-                    logger.info(f"Ubicación: {job_location}")
-                    
-                    # Crear objeto JobOffer con datos básicos
-                    job = JobOffer(
-                        title=title,
-                        company=company,
-                        url=url,
-                        location=job_location,
-                        search_history=search_history
-                    )
-                    jobs.append(job)
-                except Exception as e:
-                    logger.error(f"Error procesando oferta: {str(e)}")
-                    continue
+            # Procesar las ofertas
+            jobs_to_create = []
+            jobs_to_update = []
+            total_offers = 0
+            current_page = 1
             
-            # Ahora extraer los detalles de cada oferta
-            for job in jobs:
-                try:
-                    logger.info(f"Extrayendo detalles de la oferta: {job.url}")
-                    details = self.extract_job_details(job.url)
-                    
-                    # Actualizar los detalles de la oferta
-                    job.salary = details.get('salary', '')
-                    job.work_mode = details.get('work_mode', '')
-                    job.min_experience = details.get('min_experience', '')
-                    job.contract_type = details.get('contract_type', '')
-                    job.studies = details.get('studies', '')
-                    job.languages = details.get('languages', '')
-                    job.required_skills = details.get('required_skills', '')
-                    job.vacantes = details.get('vacantes', '')
-                    job.inscritos = details.get('inscritos', '')
-                    job.publication_date = details.get('published_date', '')
-                    
-                    logger.info(f"Detalles extraídos para: {job.title}")
-                except Exception as e:
-                    logger.error(f"Error extrayendo detalles de la oferta {job.url}: {str(e)}")
-                    continue
-            
-            # Guardar todas las ofertas en la base de datos
-            if jobs:
-                logger.info(f"Intentando guardar {len(jobs)} ofertas en la base de datos")
-                try:
-                    # Primero intentar guardar todas las ofertas
-                    JobOffer.objects.bulk_create(jobs, ignore_conflicts=True)
-                    logger.info(f"Se guardaron {len(jobs)} ofertas en la base de datos correctamente")
-                except Exception as e:
-                    logger.error(f"Error al guardar ofertas en la base de datos: {str(e)}")
-                    
-                    # Si falla el bulk_create, intentar guardar una por una
-                    for job in jobs:
-                        try:
-                            job.save(force_insert=True)
-                        except Exception as e:
-                            logger.warning(f"Oferta duplicada o error al guardar: {str(e)}")
-                            continue
-
-                # Volver a extraer la información de la primera oferta
-                if jobs:
-                    logger.info("Volviendo a extraer la información de la primera oferta...")
+            while total_offers < limit:
+                # Extraer las ofertas de la página actual
+                job_offers = self.driver.find_elements(By.CSS_SELECTOR, "div.p-3.border.rounded.mb-3.bg-white")
+                logger.info(f"📋 Se encontraron {len(job_offers)} ofertas en la página {current_page}")
+                
+                # Obtener todas las URLs y detalles básicos de las ofertas primero
+                offer_details = []
+                for offer in job_offers:
                     try:
-                        # Obtener la primera oferta de la base de datos usando la URL
-                        first_job = JobOffer.objects.get(url=jobs[0].url)
-                        logger.info(f"Extrayendo detalles de la primera oferta: {first_job.url}")
-                        details = self.extract_job_details(first_job.url)
+                        title_elem = offer.find_element(By.CSS_SELECTOR, "a.font-weight-bold.text-cyan-700")
+                        company_elem = offer.find_element(By.CSS_SELECTOR, "a.text-primary.link-muted")
                         
-                        # Actualizar los detalles de la oferta
-                        first_job.salary = details.get('salary', '')
-                        first_job.work_mode = details.get('work_mode', '')
-                        first_job.min_experience = details.get('min_experience', '')
-                        first_job.contract_type = details.get('contract_type', '')
-                        first_job.studies = details.get('studies', '')
-                        first_job.languages = details.get('languages', '')
-                        first_job.required_skills = details.get('required_skills', '')
-                        first_job.vacantes = details.get('vacantes', '')
-                        first_job.inscritos = details.get('inscritos', '')
-                        first_job.publication_date = details.get('published_date', '')
+                        url = title_elem.get_attribute("href")
+                        title = title_elem.text.strip()
+                        company = company_elem.text.strip()
                         
-                        # Guardar los cambios
-                        first_job.save()
-                        logger.info("Información de la primera oferta actualizada correctamente")
-                    except JobOffer.DoesNotExist:
-                        logger.error("No se encontró la primera oferta en la base de datos")
+                        offer_details.append({
+                            'url': url,
+                            'title': title,
+                            'company': company
+                        })
+                        logger.info(f"📌 Título: {title}")
+                        logger.info(f"🏢 Empresa: {company}")
                     except Exception as e:
-                        logger.error(f"Error al volver a extraer la información de la primera oferta: {str(e)}")
+                        logger.warning(f"⚠️ No se pudo obtener los detalles básicos de una oferta: {str(e)}")
+                        continue
+                
+                # Procesar cada oferta
+                for i, details in enumerate(offer_details, 1):
+                    if total_offers >= limit:
+                        break
+                        
+                    try:
+                        logger.info(f"\n📋 Procesando oferta {total_offers + 1}/{limit}")
+                        
+                        # Navegar a la página de detalles de la oferta
+                        self.driver.get(details['url'])
+                        time.sleep(2)  # Esperar a que cargue la página
+                        
+                        # Extraer detalles adicionales de la oferta
+                        job_details = self.extract_job_details(details['url'])
+                        
+                        # Verificar si la oferta ya existe
+                        existing_job = JobOffer.objects.filter(url=details['url']).first()
+                        if existing_job:
+                            # Actualizar la oferta existente
+                            self._update_existing_job(existing_job, job_details, search_history)
+                            jobs_to_update.append(existing_job)
+                            logger.info(f"✅ Oferta existente actualizada: {details['title']} en {details['company']}")
+                        else:
+                            # Crear nueva oferta
+                            job = JobOffer(
+                                title=details['title'],
+                                company=details['company'],
+                                url=details['url'],
+                                search_history=search_history,
+                                **job_details
+                            )
+                            jobs_to_create.append(job)
+                            logger.info(f"✅ Nueva oferta creada: {details['title']} en {details['company']}")
+                        
+                        total_offers += 1
+                        
+                    except Exception as e:
+                        logger.error(f"❌ Error procesando oferta {total_offers + 1}: {str(e)}")
+                        continue
+                
+                # Verificar si hay más páginas y si necesitamos continuar
+                if total_offers < limit:
+                    try:
+                        next_page = self.driver.find_element(By.CSS_SELECTOR, "a.page-link[href*='pagina=" + str(current_page + 1) + "']")
+                        if next_page:
+                            logger.info(f"🔄 Navegando a la página {current_page + 1}")
+                            next_page.click()
+                            time.sleep(3)  # Esperar a que cargue la nueva página
+                            current_page += 1
+                            continue
+                    except:
+                        logger.info("ℹ️ No hay más páginas disponibles")
+                        break
+                else:
+                    break
+            
+            # Actualizar el número total de ofertas en el historial de búsqueda
+            search_history.results_count = total_offers
+            search_history.save()
+            
+            # Guardar las ofertas en la base de datos
+            if jobs_to_create:
+                JobOffer.objects.bulk_create(jobs_to_create)
+                logger.info(f"✅ Se guardaron {len(jobs_to_create)} nuevas ofertas")
+            
+            if jobs_to_update:
+                for job in jobs_to_update:
+                    job.save()
+                logger.info(f"✅ Se actualizaron {len(jobs_to_update)} ofertas existentes")
             
             return {
                 'success': True,
-                'count': len(jobs),
+                'count': len(jobs_to_create) + len(jobs_to_update),
                 'search_id': search_history.id
             }
             
         except Exception as e:
-            logger.error(f"Error en el scraping: {str(e)}")
-            self.take_screenshot("unexpected_error")
+            logger.error(f"❌ Error en la búsqueda: {str(e)}")
             return {
                 'success': False,
                 'error': str(e)

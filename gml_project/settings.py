@@ -39,6 +39,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'jobs',
     'django_extensions',
+    'gestion',  # Nueva app de gestión
+    'django_bootstrap5',  # Bootstrap 5 para Django
 ]
 
 MIDDLEWARE = [
@@ -63,6 +65,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'gestion.context_processors.chat_data',  # Context processor para el chat
             ],
         },
     },
@@ -121,8 +124,15 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
+STATICFILES_DIRS = [BASE_DIR / 'static']
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Login settings
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/proyectos/'
+LOGOUT_REDIRECT_URL = '/login/'

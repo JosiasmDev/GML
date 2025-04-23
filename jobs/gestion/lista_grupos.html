@@ -1,0 +1,23 @@
+{% extends 'gestion/base.html' %}
+{% block contenido %}
+<h1 class="text-center">Grupos</h1>
+<ul class="list-group">
+    {% for grupo in grupos %}
+        <li class="list-group-item bg-secondary text-light">
+            <a href="{% url 'gestionar_grupo' grupo.id %}" class="text-light">{{ grupo.nombre }} (Proyecto: {{ grupo.proyecto.titulo }})</a>
+        </li>
+    {% empty %}
+        <li class="list-group-item bg-secondary text-light">No hay grupos.</li>
+    {% endfor %}
+</ul>
+<form method="post" class="mt-3 bg-secondary p-4 rounded">
+    {% csrf_token %}
+    <input type="text" name="nombre" class="form-control mb-2" placeholder="Nombre del grupo" required>
+    <select name="proyecto" class="form-control mb-2" required>
+        {% for proyecto in proyectos %}
+            <option value="{{ proyecto.id }}">{{ proyecto.titulo }}</option>
+        {% endfor %}
+    </select>
+    <button type="submit" class="btn btn-primary w-100">Crear Grupo</button>
+</form>
+{% endblock %}

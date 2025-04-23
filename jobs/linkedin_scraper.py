@@ -72,7 +72,7 @@ class LinkedInScraper:
             logger.error(f"Error al configurar el driver: {str(e)}")
             raise
         
-    def search_jobs(self, keywords, location="Spain", limit=2):
+    def search_jobs(self, keywords, location="Spain", limit=5):
         """
         Busca ofertas de trabajo en LinkedIn
         """
@@ -161,15 +161,15 @@ class LinkedInScraper:
             location_code = linkedin_location_mapping.get(location, "105646813")  # Por defecto, España
             
             logger.info("🔍 Realizando búsqueda...")
-            # Realizar la búsqueda con límite de 2 ofertas
+            # Realizar la búsqueda con el límite especificado
             search_results = api.search_jobs(
                 keywords=keywords,
                 location_name=location_code,
-                limit=2  # Forzamos el límite a 2 ofertas
+                limit=limit  # Usar el límite proporcionado
             )
             
-            # Asegurarnos de que solo procesamos 2 ofertas
-            search_results = search_results[:2]
+            # Asegurarnos de que solo procesamos el número de ofertas especificado
+            search_results = search_results[:limit]
             
             logger.info(f"✅ Búsqueda completada. Se encontraron {len(search_results)} ofertas")
             
@@ -190,7 +190,7 @@ class LinkedInScraper:
             
             for i, result in enumerate(search_results, 1):
                 try:
-                    logger.info(f"\n📋 Procesando oferta {i}/2")
+                    logger.info(f"\n📋 Procesando oferta {i}/{limit}")
                     
                     # Obtener el ID de la oferta
                     job_id = result.get('jobPosting', {}).get('id') or result.get('dashEntityUrn', '').split(':')[-1] or result.get('entityUrn', '').split(':')[-1]

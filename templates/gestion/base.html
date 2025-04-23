@@ -1,0 +1,199 @@
+{% load static chat_tags %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Comunicación Empresarial</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #2c2f33;
+            color: #d4d4d4;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            height: 100vh;
+            overflow: hidden; /* Evita scroll en el body */
+        }
+        .navbar {
+            background-color: #1f2527;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+        }
+        .navbar-brand, .nav-link {
+            color: #fff !important;
+        }
+        .nav-link:hover {
+            background-color: #34495e;
+        }
+        .btn-link {
+            color: #fff !important;
+        }
+        .main-container {
+            display: flex;
+            height: calc(100vh - 70px); /* Resta la altura de la navbar */
+            margin-top: 70px; /* Espacio para la navbar fija */
+        }
+        .content-area {
+            flex: 2; /* Dos tercios del espacio */
+            overflow-y: auto; /* Solo el contenido es desplazable */
+            padding: 20px;
+        }
+        .chat-container {
+            flex: 1; /* Un tercio del espacio */
+            background: #3c3f43;
+            border-left: 1px solid #555;
+            box-shadow: -2px 0 5px rgba(0,0,0,0.3);
+            overflow-y: auto; /* Chat desplazable */
+            padding: 20px;
+        }
+        .chat-messages {
+            max-height: 60%;
+            overflow-y: auto;
+            border: 1px solid #666;
+            border-radius: 5px;
+            padding: 10px;
+            background: #44474b;
+        }
+        .card {
+            background-color: #36393f;
+            border: none;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            color: #d4d4d4;
+        }
+        .card-header {
+            background-color: #2f3136;
+        }
+        .btn-primary {
+            background-color: #5865f2;
+            border-color: #5865f2;
+        }
+        .btn-primary:hover {
+            background-color: #4752c4;
+            border-color: #4752c4;
+        }
+        .list-group-item {
+            background-color: #36393f;
+            border: none;
+            color: #d4d4d4;
+        }
+        .form-control {
+            background-color: #40444b;
+            border-color: #555;
+            color: #d4d4d4;
+        }
+        .form-control:focus {
+            background-color: #40444b;
+            color: #d4d4d4;
+            border-color: #5865f2;
+            box-shadow: 0 0 0 0.2rem rgba(88, 101, 242, 0.25);
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand mx-auto" href="#">Sistema de Comunicación Empresarial</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <div class="navbar-nav ms-auto">
+                    <a class="nav-link" href="{% url 'lista_proyectos' %}"><i class="fas fa-project-diagram me-1"></i> Proyectos</a>
+                    <a class="nav-link" href="{% url 'lista_grupos' %}"><i class="fas fa-users me-1"></i> Grupos</a>
+                    <a class="nav-link" href="{% url 'lista_usuarios' %}"><i class="fas fa-user-friends me-1"></i> Usuarios</a>
+                    <a class="nav-link position-relative" href="{% url 'lista_notificaciones' %}">
+                        <i class="fas fa-bell me-1"></i> Notificaciones
+                        {% if user.is_authenticated and user.notifications.unread.count > 0 %}
+                            <span class="badge bg-warning text-dark position-absolute top-0 start-100 translate-middle">
+                                {{ user.notifications.unread.count }}
+                            </span>
+                        {% endif %}
+                    </a>
+                    {% if user.is_authenticated %}
+                        <form method="post" action="{% url 'logout' %}" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="nav-link btn btn-link"><i class="fas fa-sign-out-alt me-1"></i> Cerrar Sesión</button>
+                        </form>
+                    {% else %}
+                        <a class="nav-link" href="{% url 'login' %}"><i class="fas fa-sign-in-alt me-1"></i> Iniciar Sesión</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+    <div class="main-container">
+        <div class="content-area">
+            {% block contenido %}{% endblock %}
+        </div>
+        <div class="chat-container">
+            <h3>Mensajes</h3>
+            {% if user.is_authenticated %}
+                <button class="btn btn-primary w-100 mb-3" type="button" data-bs-toggle="collapse" data-bs-target="#nuevoMensaje" aria-expanded="false" aria-controls="nuevoMensaje">
+                    <i class="fas fa-plus me-1"></i> Nuevo Mensaje
+                </button>
+                <div class="collapse mb-3" id="nuevoMensaje">
+                    <form method="post" action="{% url 'enviar_mensaje_privado' %}" class="p-3 rounded" style="background: #f9f9f9;">
+                        {% csrf_token %}
+                        <select name="destinatario" class="form-control mb-2" required>
+                            {% for usuario in todos_los_usuarios %}
+                                <option value="{{ usuario.id }}">{{ usuario.username }}</option>
+                            {% endfor %}
+                        </select>
+                        <textarea name="contenido" class="form-control mb-2" rows="2" placeholder="Escribe un mensaje..."></textarea>
+                        <button type="submit" class="btn btn-primary w-100">Enviar</button>
+                    </form>
+                </div>
+                <ul class="list-group mb-3">
+                    {% for usuario in usuarios_conversados %}
+                        <li class="list-group-item {% if usuario.id|stringformat:'s' == conversacion_con %}active{% endif %} {% if usuarios_con_mensajes_no_leidos|lookup:usuario.id %}text-warning{% endif %}">
+                            <button class="btn btn-success btn-sm me-2" onclick="window.location.href='?con={{ usuario.id }}'">
+                                {{ usuario.username }}
+                                {% if usuarios_con_mensajes_no_leidos|lookup:usuario.id %}
+                                    <span class="badge bg-warning text-dark">Nuevo</span>
+                                {% endif %}
+                            </button>
+                            <a href="{% url 'borrar_chat' usuario.id %}" class="btn btn-sm btn-danger float-end" onclick="return confirm('¿Seguro que quieres borrar este chat?');">Borrar</a>
+                        </li>
+                    {% endfor %}
+                </ul>
+                {% if mensajes_conversacion %}
+                    <div class="chat-messages">
+                        <ul class="list-group">
+                            {% for mensaje in mensajes_conversacion %}
+                                <li class="list-group-item {% if mensaje.remitente == user %}text-end{% endif %}">
+                                    <div>
+                                        <strong>{{ mensaje.remitente.username }}</strong>: {{ mensaje.contenido }} 
+                                        <small class="text-muted">({{ mensaje.fecha_envio|date:"H:i" }})</small>
+                                    </div>
+                                    {% if mensaje.remitente == user %}
+                                        <div class="mt-1">
+                                            <a href="{% url 'editar_mensaje' mensaje.id %}" class="btn btn-sm btn-warning me-2">Editar</a>
+                                            <a href="{% url 'eliminar_mensaje' mensaje.id %}" class="btn btn-sm btn-danger" onclick="return confirm('¿Seguro que quieres eliminar este mensaje?');">Eliminar</a>
+                                        </div>
+                                    {% endif %}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    <form method="post" action="{% url 'enviar_mensaje_privado' %}" class="mt-3">
+                        {% csrf_token %}
+                        <input type="hidden" name="destinatario" value="{{ conversacion_con }}">
+                        <textarea name="contenido" class="form-control mb-2" rows="2" placeholder="Escribe un mensaje..."></textarea>
+                        <button type="submit" class="btn btn-primary w-100">Enviar</button>
+                    </form>
+                {% else %}
+                    <p class="text-muted">Selecciona un usuario para ver los mensajes.</p>
+                {% endif %}
+            {% else %}
+                <p class="text-muted">Inicia sesión para ver tus mensajes.</p>
+            {% endif %}
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
