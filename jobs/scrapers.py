@@ -22,6 +22,7 @@ from datetime import datetime, timedelta
 import pyautogui
 import time
 import inspect
+from selenium.webdriver.support.ui import Select
 
 # Configurar logging
 logging.basicConfig(level=logging.INFO)
@@ -31,168 +32,184 @@ class InfoJobsScraper:
     BASE_URL = "https://www.infojobs.net"
     
     def __init__(self, headless=False, use_existing_browser=False):
-        logger.info("Iniciando InfoJobsScraper...")
+        logger.info("=== INICIO DE INICIALIZACIÓN DE INFOJOBSSCRAPER ===")
         logger.info(f"URL base configurada: {self.BASE_URL}")
         
-        if use_existing_browser:
-            logger.info("Buscando ventana de Firefox existente...")
-            
-            # Buscar la ventana de Firefox en la barra de tareas
-            logger.info("PYAUTOGUI: Buscando ventanas de Firefox...")
-            firefox_windows = pyautogui.getWindowsWithTitle("firefox")
-            if not firefox_windows:
-                raise Exception("No se encontró ninguna ventana de Firefox abierta")
-            
-            # Seleccionar la primera ventana de Firefox encontrada
-            logger.info("PYAUTOGUI: Activando ventana de Firefox...")
-            firefox_window = firefox_windows[0]
-            firefox_window.activate()
-            time.sleep(1)  # Esperar a que la ventana se active
-            
-            # Abrir nueva pestaña (Ctrl+T)
-            logger.info("PYAUTOGUI: Abriendo nueva pestaña...")
-            pyautogui.hotkey('ctrl', 't')
-            time.sleep(1)  # Esperar a que se abra la pestaña
-            
-            # Navegar a la URL base usando pyautogui
-            logger.info("PYAUTOGUI: Navegando a la URL base...")
-            pyautogui.hotkey('ctrl', 'l')  # Seleccionar la barra de direcciones
-            time.sleep(0.5)
-            # Verificar y limpiar la URL antes de usarla
-            url_to_use = self.BASE_URL.strip()
-            if url_to_use.startswith("77"):
-                url_to_use = url_to_use[2:]
-            logger.info(f"PYAUTOGUI: Escribiendo URL: {url_to_use}")
-            pyautogui.write(url_to_use)
-            time.sleep(0.5)
-            pyautogui.press('enter')
-            time.sleep(2)  # Esperar a que la página cargue
-            
-            # Verificar la URL actual
-            current_url = self.driver.current_url
-            logger.info(f"URL actual después de la navegación: {current_url}")
-            
-            # Ahora que la pestaña está abierta y navegando, configuramos Selenium para usar la sesión existente
-            logger.info("SELENIUM: Configurando opciones de Firefox...")
-            firefox_options = Options()
-            firefox_options.profile = webdriver.FirefoxProfile()
-            
-            # Configurar el servicio con la ruta específica del geckodriver
-            logger.info("SELENIUM: Configurando servicio...")
-            service = Service('/usr/local/bin/geckodriver')
-            
-            # Inicializar el driver con el perfil y el servicio
-            logger.info("SELENIUM: Inicializando driver...")
-            self.driver = webdriver.Firefox(service=service, options=firefox_options)
+        try:
+            if use_existing_browser:
+                logger.info("Buscando ventana de Firefox existente...")
                 
-        else:
-            # Configurar opciones de Firefox
-            logger.info("SELENIUM: Configurando opciones de Firefox...")
-            firefox_options = Options()
-            if headless:
-                firefox_options.add_argument('--headless')
-            firefox_options.add_argument('--disable-gpu')
-            firefox_options.add_argument('--no-sandbox')
-            firefox_options.add_argument('--disable-dev-shm-usage')
-            firefox_options.add_argument('--window-size=1920,1080')
-            firefox_options.add_argument('--disable-extensions')
-            firefox_options.add_argument('--disable-infobars')
-            firefox_options.add_argument('--disable-notifications')
-            firefox_options.add_argument('--disable-popup-blocking')
-            
-            # Lista de User-Agents comunes
-            user_agents = [
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
-                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:123.0) Gecko/20100101 Firefox/123.0"
-            ]
-            
-            # Configurar el perfil de Firefox
-            logger.info("SELENIUM: Configurando perfil de Firefox...")
-            firefox_profile = webdriver.FirefoxProfile() if hasattr(webdriver, 'FirefoxProfile') else None
-            if firefox_profile:
-                firefox_profile.set_preference("general.useragent.override", random.choice(user_agents))
-                firefox_profile.set_preference("intl.accept_languages", "es-ES,es")
-                firefox_profile.set_preference("browser.cache.disk.enable", False)
-                firefox_profile.set_preference("browser.cache.memory.enable", False)
-                firefox_profile.set_preference("browser.cache.offline.enable", False)
-                firefox_profile.set_preference("network.http.use-cache", False)
-                firefox_profile.update_preferences()
-                firefox_options.profile = firefox_profile
-            
-            try:
+                # Buscar la ventana de Firefox en la barra de tareas
+                logger.info("PYAUTOGUI: Buscando ventanas de Firefox...")
+                firefox_windows = pyautogui.getWindowsWithTitle("firefox")
+                if not firefox_windows:
+                    raise Exception("No se encontró ninguna ventana de Firefox abierta")
+                
+                # Seleccionar la primera ventana de Firefox encontrada
+                logger.info("PYAUTOGUI: Activando ventana de Firefox...")
+                firefox_window = firefox_windows[0]
+                firefox_window.activate()
+                time.sleep(1)  # Esperar a que la ventana se active
+                
+                # Abrir nueva pestaña (Ctrl+T)
+                logger.info("PYAUTOGUI: Abriendo nueva pestaña...")
+                pyautogui.hotkey('ctrl', 't')
+                time.sleep(1)  # Esperar a que se abra la pestaña
+                
+                # Navegar a la URL base usando pyautogui
+                logger.info("PYAUTOGUI: Navegando a la URL base...")
+                pyautogui.hotkey('ctrl', 'l')  # Seleccionar la barra de direcciones
+                time.sleep(0.5)
+                # Verificar y limpiar la URL antes de usarla
+                url_to_use = self.BASE_URL.strip()
+                if url_to_use.startswith("77"):
+                    url_to_use = url_to_use[2:]
+                logger.info(f"PYAUTOGUI: Escribiendo URL: {url_to_use}")
+                pyautogui.write(url_to_use)
+                time.sleep(0.5)
+                pyautogui.press('enter')
+                time.sleep(2)  # Esperar a que la página cargue
+                
+                # Verificar la URL actual
+                current_url = self.driver.current_url
+                logger.info(f"URL actual después de la navegación: {current_url}")
+                
+                # Ahora que la pestaña está abierta y navegando, configuramos Selenium para usar la sesión existente
+                logger.info("SELENIUM: Configurando opciones de Firefox...")
+                firefox_options = Options()
+                firefox_options.profile = webdriver.FirefoxProfile()
+                
                 # Configurar el servicio con la ruta específica del geckodriver
                 logger.info("SELENIUM: Configurando servicio...")
                 service = Service('/usr/local/bin/geckodriver')
                 
-                # Inicializar el driver con el servicio
+                # Inicializar el driver con el perfil y el servicio
                 logger.info("SELENIUM: Inicializando driver...")
                 self.driver = webdriver.Firefox(service=service, options=firefox_options)
-                self.driver.implicitly_wait(20)
-                logger.info("Driver de Firefox inicializado correctamente")
-            except WebDriverException as e:
-                logger.error(f"Error al inicializar el driver: {str(e)}")
-                raise
-        
-        # Mapeo manual de códigos de provincia a nombres
-        self.province_map = {
-            "0": "Toda España",
-            "foreign": "El extranjero",
-            "28": "A Coruña",
-            "2": "Álava/Araba",
-            "3": "Albacete",
-            "4": "Alicante/Alacant",
-            "5": "Almería",
-            "6": "Asturias",
-            "7": "Ávila",
-            "8": "Badajoz",
-            "9": "Barcelona",
-            "10": "Burgos",
-            "11": "Cáceres",
-            "12": "Cádiz",
-            "13": "Cantabria",
-            "14": "Castellón/Castelló",
-            "15": "Ceuta",
-            "16": "Ciudad Real",
-            "17": "Córdoba",
-            "18": "Cuenca",
-            "19": "Girona",
-            "21": "Granada",
-            "22": "Guadalajara",
-            "23": "Guipúzcoa/Gipuzkoa",
-            "24": "Huelva",
-            "25": "Huesca",
-            "26": "Islas Baleares/Illes Balears",
-            "27": "Jaén",
-            "29": "La Rioja",
-            "20": "Las Palmas",
-            "30": "León",
-            "31": "Lleida",
-            "32": "Lugo",
-            "33": "Madrid",
-            "34": "Málaga",
-            "35": "Melilla",
-            "36": "Murcia",
-            "37": "Navarra",
-            "38": "Ourense",
-            "39": "Palencia",
-            "40": "Pontevedra",
-            "41": "Salamanca",
-            "46": "Santa Cruz de Tenerife",
-            "42": "Segovia",
-            "43": "Sevilla",
-            "44": "Soria",
-            "45": "Tarragona",
-            "47": "Teruel",
-            "48": "Toledo",
-            "49": "Valencia/València",
-            "50": "Valladolid",
-            "51": "Vizcaya/Bizkaia",
-            "52": "Zamora",
-            "53": "Zaragoza"
-        }
-    
+                    
+            else:
+                # Configurar opciones de Firefox
+                logger.info("SELENIUM: Configurando opciones de Firefox...")
+                firefox_options = Options()
+                if headless:
+                    firefox_options.add_argument('--headless')
+                firefox_options.add_argument('--disable-gpu')
+                firefox_options.add_argument('--no-sandbox')
+                firefox_options.add_argument('--disable-dev-shm-usage')
+                firefox_options.add_argument('--window-size=1920,1080')
+                firefox_options.add_argument('--disable-extensions')
+                firefox_options.add_argument('--disable-infobars')
+                firefox_options.add_argument('--disable-notifications')
+                firefox_options.add_argument('--disable-popup-blocking')
+                
+                # Lista de User-Agents más realistas
+                user_agents = [
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
+                    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:123.0) Gecko/20100101 Firefox/123.0",
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36 Edg/122.0.0.0",
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36 OPR/108.0.0.0"
+                ]
+                
+                # Configurar el perfil de Firefox
+                logger.info("SELENIUM: Configurando perfil de Firefox...")
+                firefox_profile = webdriver.FirefoxProfile() if hasattr(webdriver, 'FirefoxProfile') else None
+                if firefox_profile:
+                    firefox_profile.set_preference("general.useragent.override", random.choice(user_agents))
+                    firefox_profile.set_preference("intl.accept_languages", "es-ES,es")
+                    firefox_profile.set_preference("browser.cache.disk.enable", False)
+                    firefox_profile.set_preference("browser.cache.memory.enable", False)
+                    firefox_profile.set_preference("browser.cache.offline.enable", False)
+                    firefox_profile.set_preference("network.http.use-cache", False)
+                    firefox_profile.set_preference("privacy.trackingprotection.enabled", False)
+                    firefox_profile.set_preference("network.cookie.cookieBehavior", 0)
+                    firefox_profile.update_preferences()
+                    firefox_options.profile = firefox_profile
+                
+                try:
+                    # Configurar el servicio con la ruta específica del geckodriver
+                    logger.info("SELENIUM: Configurando servicio...")
+                    service = Service('/usr/local/bin/geckodriver')
+                    
+                    # Inicializar el driver con el servicio
+                    logger.info("SELENIUM: Inicializando driver...")
+                    self.driver = webdriver.Firefox(service=service, options=firefox_options)
+                    self.driver.implicitly_wait(20)
+                    logger.info("Driver de Firefox inicializado correctamente")
+                except WebDriverException as e:
+                    logger.error(f"Error al inicializar el driver: {str(e)}")
+                    raise
+            
+            # Verificar que el driver se haya inicializado correctamente
+            if not hasattr(self, 'driver') or not self.driver:
+                raise Exception("El driver de Firefox no se inicializó correctamente")
+            
+            logger.info("=== FIN DE INICIALIZACIÓN DE INFOJOBSSCRAPER ===")
+            
+            # Mapeo manual de códigos de provincia a nombres
+            self.province_map = {
+                "0": "Toda España",
+                "foreign": "El extranjero",
+                "28": "A Coruña",
+                "2": "Álava/Araba",
+                "3": "Albacete",
+                "4": "Alicante/Alacant",
+                "5": "Almería",
+                "6": "Asturias",
+                "7": "Ávila",
+                "8": "Badajoz",
+                "9": "Barcelona",
+                "10": "Burgos",
+                "11": "Cáceres",
+                "12": "Cádiz",
+                "13": "Cantabria",
+                "14": "Castellón/Castelló",
+                "15": "Ceuta",
+                "16": "Ciudad Real",
+                "17": "Córdoba",
+                "18": "Cuenca",
+                "19": "Girona",
+                "21": "Granada",
+                "22": "Guadalajara",
+                "23": "Guipúzcoa/Gipuzkoa",
+                "24": "Huelva",
+                "25": "Huesca",
+                "26": "Islas Baleares/Illes Balears",
+                "27": "Jaén",
+                "29": "La Rioja",
+                "20": "Las Palmas",
+                "30": "León",
+                "31": "Lleida",
+                "32": "Lugo",
+                "33": "Madrid",
+                "34": "Málaga",
+                "35": "Melilla",
+                "36": "Murcia",
+                "37": "Navarra",
+                "38": "Ourense",
+                "39": "Palencia",
+                "40": "Pontevedra",
+                "41": "Salamanca",
+                "46": "Santa Cruz de Tenerife",
+                "42": "Segovia",
+                "43": "Sevilla",
+                "44": "Soria",
+                "45": "Tarragona",
+                "47": "Teruel",
+                "48": "Toledo",
+                "49": "Valencia/València",
+                "50": "Valladolid",
+                "51": "Vizcaya/Bizkaia",
+                "52": "Zamora",
+                "53": "Zaragoza"
+            }
+            
+        except Exception as e:
+            logger.error(f"Error en la inicialización del scraper: {str(e)}")
+            logger.error(f"Traceback: {inspect.trace()}")
+            raise
+
     def __del__(self):
         if hasattr(self, 'driver'):
             logger.info("Cerrando el driver de Firefox...")
@@ -252,6 +269,7 @@ class InfoJobsScraper:
             required_skills = ""
             vacantes = ""
             inscritos = ""
+            publication_date = ""
             
             # Selectores para los detalles
             salary_selectors = [
@@ -428,7 +446,6 @@ class InfoJobsScraper:
                     break
             
             # Extraer fecha de publicación
-            published_date = ""
             published_date_selectors = [
                 ".ij-OfferDetailHeader-publishedAt .ij-FormatterSincedate",
                 ".ij-OfferDetailHeader-publishedAt span[data-testid='sincedate-tag']",
@@ -442,10 +459,10 @@ class InfoJobsScraper:
             for selector in published_date_selectors:
                 published_date_elem = page_soup.select_one(selector)
                 if published_date_elem:
-                    published_date = published_date_elem.text.strip()
+                    publication_date = published_date_elem.text.strip()
                     break
             
-            logger.info(f"Detalles extraídos - Salario: {salary}, Modo: {work_mode}, Exp: {min_experience}, Contrato: {contract_type}, Estudios: {studies}, Idiomas: {languages}, Habilidades: {required_skills}, Vacantes: {vacantes}, Inscritos: {inscritos}, Fecha: {published_date}")
+            logger.info(f"Detalles extraídos - Salario: {salary}, Modo: {work_mode}, Exp: {min_experience}, Contrato: {contract_type}, Estudios: {studies}, Idiomas: {languages}, Habilidades: {required_skills}, Vacantes: {vacantes}, Inscritos: {inscritos}, Fecha: {publication_date}")
             
             return {
                 'salary': salary,
@@ -457,7 +474,7 @@ class InfoJobsScraper:
                 'required_skills': required_skills,
                 'vacantes': vacantes,
                 'inscritos': inscritos,
-                'published_date': published_date
+                'publication_date': publication_date
             }
             
         except Exception as e:
@@ -515,237 +532,319 @@ class InfoJobsScraper:
             
         return datetime(year, month, day)
 
-    def search_jobs(self, keywords, location="", limit=5):
-        """
-        Busca ofertas de trabajo en InfoJobs
-        
-        Args:
-            keywords (str): Palabras clave para la búsqueda
-            location (str): Código de la provincia (opcional)
-            limit (int): Límite de ofertas a procesar
-        """
+    def human_like_typing(self, element, text):
+        """Simula la escritura humana en un elemento"""
+        for char in text:
+            element.send_keys(char)
+            time.sleep(random.uniform(0.1, 0.3))
+            
+    def human_like_click(self, element):
+        """Simula un clic humano en un elemento"""
         try:
-            logger.info(f"🔍 Iniciando búsqueda en InfoJobs")
-            logger.info(f"📝 Palabras clave: {keywords}")
-            logger.info(f"📍 Ubicación: {location}")
-            logger.info(f"📊 Límite de resultados: {limit}")
+            # Intentar hacer scroll hasta el elemento
+            self.driver.execute_script("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", element)
+            self.random_sleep(1, 2)
             
-            # Navegar a la página principal
-            self.driver.get(self.BASE_URL)
-            logger.info("✅ Página principal cargada")
-            
-            # Esperar a que cargue el formulario de búsqueda
-            search_input = WebDriverWait(self.driver, 10).until(
-                EC.presence_of_element_located((By.ID, "keywordInput"))
-            )
-            if not search_input:
-                raise Exception("No se pudo encontrar el campo de búsqueda")
-            
-            # Hacer scroll hasta el campo de búsqueda
-            self.driver.execute_script("""
-                var element = arguments[0];
-                var headerOffset = 100;
-                var elementPosition = element.getBoundingClientRect().top;
-                var offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-                window.scrollTo({
-                    top: offsetPosition,
-                    behavior: 'smooth'
-                });
-            """, search_input)
-            time.sleep(2)  # Esperar a que se complete el scroll
-            
-            # Introducir palabras clave
-            search_input.clear()  # Limpiar el campo primero
-            search_input.send_keys(keywords)
-            logger.info("✅ Palabras clave introducidas")
-            
-            # Si se especifica una ubicación, seleccionarla
-            if location:
-                # Esperar a que el selector de ubicación esté presente
-                location_select = WebDriverWait(self.driver, 10).until(
-                    EC.presence_of_element_located((By.ID, "locationInput"))
-                )
-                
-                if location_select:
-                    # Hacer scroll hasta el selector usando JavaScript
-                    self.driver.execute_script("""
-                        var element = arguments[0];
-                        var headerOffset = 100;
-                        var elementPosition = element.getBoundingClientRect().top;
-                        var offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-                        window.scrollTo({
-                            top: offsetPosition,
-                            behavior: 'smooth'
-                        });
-                    """, location_select)
-                    time.sleep(2)
-                    
-                    # Seleccionar la ubicación
-                    location_select.click()
-                    time.sleep(1)
-                    
-                    # Buscar y seleccionar la opción
-                    location_option = WebDriverWait(self.driver, 10).until(
-                        EC.presence_of_element_located((By.XPATH, f"//option[contains(text(), '{location}')]"))
-                    )
-                    location_option.click()
-                    logger.info(f"✅ Ubicación seleccionada: {location}")
-            
-            # Hacer clic en el botón de búsqueda
+            # Intentar el clic normal primero
             try:
-                search_button = WebDriverWait(self.driver, 10).until(
-                    EC.element_to_be_clickable((By.CSS_SELECTOR, "button.btn.btn-primary"))
-                )
+                element.click()
+                return
+            except:
+                pass
+            
+            # Si el clic normal falla, usar ActionChains
+            action = ActionChains(self.driver)
+            action.move_to_element(element)
+            action.pause(random.uniform(0.1, 0.3))
+            action.click()
+            action.perform()
+        except Exception as e:
+            logger.error(f"Error al hacer clic en el elemento: {str(e)}")
+            # Intentar clic con JavaScript como último recurso
+            try:
+                self.driver.execute_script("arguments[0].click();", element)
+            except Exception as js_error:
+                logger.error(f"Error al hacer clic con JavaScript: {str(js_error)}")
+                raise
+
+    def search_jobs(self, keywords, location="0", limit=5):
+        max_retries = 3
+        retry_count = 0
+        
+        while retry_count < max_retries:
+            try:
+                logger.info(f"Intento {retry_count + 1} de {max_retries}")
+                logger.info("=== INICIO DE BÚSQUEDA DE TRABAJO ===")
+                logger.info(f"Parámetros recibidos - Keywords: {keywords}, Location: {location}, Limit: {limit}")
                 
+                # Obtener el nombre de la ubicación del mapeo
+                location_name = self.province_map.get(location, location)
+                logger.info(f"Iniciando búsqueda en {location_name} (código: {location})")
+                
+                # Navegar a la página principal
+                logger.info(f"Navegando a la página principal de InfoJobs: {self.BASE_URL}")
+                self.driver.get(self.BASE_URL)
+                self.random_sleep(3, 5)
+                
+                # Verificar que la página se haya cargado correctamente
+                if not self.driver.current_url.startswith(self.BASE_URL):
+                    logger.error(f"Error al cargar la página principal. URL actual: {self.driver.current_url}")
+                    return {
+                        'success': False,
+                        'error': 'Error al cargar la página principal'
+                    }
+                
+                logger.info("Página cargada correctamente")
+                
+                # Esperar a que la página se cargue completamente
+                logger.info("Esperando a que la página se cargue completamente...")
+                self.random_sleep(4, 6)
+                
+                # Verificar la URL actual
+                current_url = self.driver.current_url
+                logger.info(f"URL actual: {current_url}")
+                
+                # Manejar el botón de cookies si está presente
+                logger.info("Buscando el botón de cookies...")
                 try:
-                    # Primero intentar con JavaScript
-                    self.driver.execute_script("arguments[0].click();", search_button)
-                    logger.info("✅ Clic realizado con JavaScript")
-                except Exception as js_error:
-                    logger.warning(f"⚠️ Fallo al hacer clic con JavaScript: {str(js_error)}")
-                    # Si falla, intentar con Selenium
-                    try:
-                        search_button.click()
-                        logger.info("✅ Clic realizado con Selenium")
-                    except Exception as selenium_error:
-                        logger.error(f"❌ Fallo al hacer clic con Selenium: {str(selenium_error)}")
-                        raise Exception(f"No se pudo hacer clic en el botón: {str(selenium_error)}")
+                    cookie_button = self.wait_for_clickable("#didomi-notice-agree-button", timeout=5)
+                    if cookie_button:
+                        logger.info("Botón de cookies encontrado, haciendo clic...")
+                        self.human_like_click(cookie_button)
+                        self.random_sleep(2, 4)
+                except Exception as e:
+                    logger.warning(f"No se pudo manejar el botón de cookies: {str(e)}")
                 
-                logger.info("✅ Botón de búsqueda pulsado")
+                # Buscar el campo de búsqueda
+                logger.info("Buscando el campo de búsqueda...")
+                try:
+                    search_input = self.wait_for_element("input[name='palabra']", timeout=10)
+                    if not search_input:
+                        logger.error("No se encontró el campo de búsqueda")
+                        return {
+                            'success': False,
+                            'error': 'No se encontró el campo de búsqueda'
+                        }
+                    
+                    # Limpiar el campo de búsqueda y escribir las palabras clave
+                    logger.info(f"Escribiendo palabras clave: {keywords}")
+                    search_input.clear()
+                    self.human_like_typing(search_input, keywords)
+                    self.random_sleep(2, 4)
+                except Exception as e:
+                    logger.error(f"Error al manejar el campo de búsqueda: {str(e)}")
+                    return {
+                        'success': False,
+                        'error': f'Error al manejar el campo de búsqueda: {str(e)}'
+                    }
+                
+                # Buscar y manejar el selector de ubicación
+                logger.info("Buscando el selector de ubicación...")
+                try:
+                    location_select = self.wait_for_element("select#of_provincia", timeout=10)
+                    if location_select:
+                        # Obtener el código de la provincia del mapeo
+                        province_code = None
+                        for code, name in self.province_map.items():
+                            if name == location:
+                                province_code = code
+                                break
+                        
+                        if province_code:
+                            logger.info(f"Seleccionando ubicación: {location} (código: {province_code})")
+                            
+                            # Intentar seleccionar la ubicación usando JavaScript
+                            self.driver.execute_script(f"document.getElementById('of_provincia').value = '{province_code}';")
+                            self.driver.execute_script("document.getElementById('of_provincia').dispatchEvent(new Event('change'));")
+                            self.random_sleep(2, 4)
+                            
+                            # Verificar que la ubicación se haya seleccionado correctamente
+                            selected_location = self.driver.find_element(By.CSS_SELECTOR, "#of_provincia_chosen .chosen-single span").text
+                            logger.info(f"Ubicación seleccionada: {selected_location}")
+                            
+                            if selected_location != location:
+                                logger.warning(f"La ubicación seleccionada ({selected_location}) no coincide con la solicitada ({location})")
+                                # Intentar seleccionar la ubicación usando el índice
+                                try:
+                                    select = Select(location_select)
+                                    # Obtener todas las opciones
+                                    options = select.options
+                                    # Buscar la opción que coincida con la ubicación
+                                    for option in options:
+                                        if option.text.strip() == location:
+                                            select.select_by_visible_text(location)
+                                            self.random_sleep(2, 4)
+                                            break
+                                except Exception as e:
+                                    logger.error(f"Error al seleccionar la ubicación por texto: {str(e)}")
+                        else:
+                            logger.warning(f"No se encontró el código para la ubicación: {location}")
+                    else:
+                        logger.warning("No se encontró el selector de ubicación, continuando sin filtrar por ubicación")
+                except Exception as e:
+                    logger.error(f"Error al manejar el selector de ubicación: {str(e)}")
+                    # Continuar con la búsqueda incluso si falla la selección de ubicación
+                
+                # Buscar el botón de búsqueda
+                logger.info("Buscando el botón de búsqueda...")
+                try:
+                    search_button = self.wait_for_clickable("button[type='submit']", timeout=10)
+                    if not search_button:
+                        logger.error("No se encontró el botón de búsqueda")
+                        return {
+                            'success': False,
+                            'error': 'No se encontró el botón de búsqueda'
+                        }
+                    
+                    # Hacer clic en el botón de búsqueda
+                    logger.info("Haciendo clic en el botón de búsqueda...")
+                    self.human_like_click(search_button)
+                    
+                    # Esperar a que se carguen los resultados
+                    logger.info("Esperando a que se carguen los resultados...")
+                    self.random_sleep(4, 6)
+                    
+                    # Verificar la URL después de la búsqueda
+                    current_url = self.driver.current_url
+                    logger.info(f"URL después de la búsqueda: {current_url}")
+                    
+                    # Verificar el contenido de la página
+                    page_source = self.driver.page_source
+                    logger.info("Verificando el contenido de la página...")
+                    
+                    # Buscar elementos clave en la página
+                    try:
+                        results_overview = self.driver.find_element(By.CSS_SELECTOR, ".ij-ResultsOverview")
+                        if results_overview:
+                            logger.info(f"Se encontró el contenedor de resultados: {results_overview.text}")
+                    except:
+                        logger.warning("No se encontró el contenedor de resultados")
+                    
+                    try:
+                        job_cards = self.driver.find_elements(By.CSS_SELECTOR, ".ij-OfferCard")
+                        logger.info(f"Se encontraron {len(job_cards)} ofertas en la página")
+                    except:
+                        logger.warning("No se encontraron ofertas en la página")
+                    
+                    # Si llegamos aquí, continuamos con el procesamiento
+                    # Obtener el HTML de la página
+                    html = self.driver.page_source
+                    soup = BeautifulSoup(html, 'html.parser')
+                    
+                    # Extraer el número total de ofertas
+                    total_offers = 0
+                    results_count_elem = soup.select_one(".ij-ResultsOverview")
+                    if results_count_elem:
+                        count_text = results_count_elem.text.strip()
+                        logger.info(f"Texto del contador de resultados: {count_text}")
+                        count_match = re.search(r'(\d+)\s+ofertas', count_text)
+                        if count_match:
+                            total_offers = int(count_match.group(1))
+                            logger.info(f"Total de ofertas encontradas: {total_offers}")
+                
+                    # Crear un historial de búsqueda
+                    search_history = SearchHistory.objects.create(
+                        keywords=keywords,
+                        location=location_name,
+                        source='InfoJobs',
+                        results_count=total_offers
+                    )
+                    
+                    # Extraer las ofertas de la página
+                    jobs_to_create = []
+                    jobs_to_update = []
+                    
+                    job_cards = soup.select('.ij-OfferCard, .ij-OfferCardContent-description, .ij-OfferCardContent, .job-card, .offer-card, .search-result-item, .job-list-item')
+                    logger.info(f"Ofertas encontradas en la página: {len(job_cards)}")
+                    
+                    for card in job_cards:
+                        try:
+                            # Extraer título y URL
+                            title_elem = card.select_one('.ij-OfferCardContent-description-title-link, .ij-OfferCardContent-title-link, .job-title a, .offer-title a, .title a, h2 a, h3 a')
+                            if not title_elem:
+                                continue
+                            
+                            title = title_elem.text.strip()
+                            url = title_elem.get('href', '')
+                            if url.startswith('//'):
+                                url = 'https:' + url
+                            
+                            # Extraer empresa
+                            company_elem = card.select_one('.ij-OfferCardContent-description-subtitle-link, .ij-OfferCardContent-subtitle-link, .company-name, .employer-name, .company a, .employer a')
+                            company = company_elem.text.strip() if company_elem else "Empresa no especificada"
+                            
+                            # Extraer ubicación
+                            location_elem = card.select_one('.ij-OfferCardContent-description-location, .ij-OfferCardContent-location, .location, .job-location, .offer-location')
+                            job_location = location_elem.text.strip() if location_elem else location_name
+                            
+                            # Extraer detalles de la oferta
+                            logger.info(f"Extrayendo detalles de la oferta: {title}")
+                            job_details = self.extract_job_details(url)
+                            
+                            # Verificar si la oferta ya existe
+                            existing_job = JobOffer.objects.filter(url=url).first()
+                            if existing_job:
+                                # Actualizar la oferta existente
+                                existing_job.title = title
+                                existing_job.company = company
+                                existing_job.location = job_location
+                                existing_job.search_history = search_history
+                                # Actualizar los detalles
+                                for key, value in job_details.items():
+                                    setattr(existing_job, key, value)
+                                jobs_to_update.append(existing_job)
+                                logger.info(f"✅ Oferta existente actualizada: {title} en {company}")
+                            else:
+                                # Crear nueva oferta
+                                job = JobOffer(
+                                    title=title,
+                                    company=company,
+                                    location=job_location,
+                                    url=url,
+                                    search_history=search_history,
+                                    **job_details
+                                )
+                                jobs_to_create.append(job)
+                                logger.info(f"✅ Nueva oferta creada: {title} en {company}")
+                            
+                        except Exception as e:
+                            logger.error(f"Error procesando oferta: {str(e)}")
+                            continue
+                    
+                    # Guardar las ofertas en la base de datos
+                    if jobs_to_create:
+                        JobOffer.objects.bulk_create(jobs_to_create)
+                        logger.info(f"✅ Se guardaron {len(jobs_to_create)} nuevas ofertas en la base de datos")
+                    
+                    if jobs_to_update:
+                        for job in jobs_to_update:
+                            job.save()
+                        logger.info(f"✅ Se actualizaron {len(jobs_to_update)} ofertas existentes")
+                    
+                    logger.info("=== FIN DE BÚSQUEDA DE TRABAJO ===")
+                    return {
+                        'success': True,
+                        'count': len(jobs_to_create) + len(jobs_to_update),
+                        'search_id': search_history.id
+                    }
+                    
+                except Exception as e:
+                    logger.error(f"Error al manejar el botón de búsqueda: {str(e)}")
+                    return {
+                        'success': False,
+                        'error': f'Error al manejar el botón de búsqueda: {str(e)}'
+                    }
                 
             except Exception as e:
-                logger.error(f"❌ Error al interactuar con el botón de búsqueda: {str(e)}")
-                raise Exception(f"Error al interactuar con el botón de búsqueda: {str(e)}")
-            
-            # Esperar a que carguen los resultados
-            logger.info("⏳ Esperando resultados...")
-            time.sleep(5)  # Esperar a que carguen los resultados
-            
-            # Obtener el número de ofertas encontradas
-            results_header = self.wait_for_element(By.CSS_SELECTOR, "h1.h4.h6-xs.text-center.my-4")
-            if results_header:
-                logger.info(f"📊 {results_header.text}")
-            
-            # Crear un historial de búsqueda
-            search_history = SearchHistory.objects.create(
-                keywords=keywords,
-                location=location,
-                source='InfoJobs',
-                results_count=0  # Se actualizará al final
-            )
-            
-            # Procesar las ofertas
-            jobs_to_create = []
-            jobs_to_update = []
-            total_offers = 0
-            current_page = 1
-            
-            while total_offers < limit:
-                # Extraer las ofertas de la página actual
-                job_offers = self.driver.find_elements(By.CSS_SELECTOR, "div.p-3.border.rounded.mb-3.bg-white")
-                logger.info(f"📋 Se encontraron {len(job_offers)} ofertas en la página {current_page}")
-                
-                # Obtener todas las URLs y detalles básicos de las ofertas primero
-                offer_details = []
-                for offer in job_offers:
-                    try:
-                        title_elem = offer.find_element(By.CSS_SELECTOR, "a.font-weight-bold.text-cyan-700")
-                        company_elem = offer.find_element(By.CSS_SELECTOR, "a.text-primary.link-muted")
-                        
-                        url = title_elem.get_attribute("href")
-                        title = title_elem.text.strip()
-                        company = company_elem.text.strip()
-                        
-                        offer_details.append({
-                            'url': url,
-                            'title': title,
-                            'company': company
-                        })
-                        logger.info(f"📌 Título: {title}")
-                        logger.info(f"🏢 Empresa: {company}")
-                    except Exception as e:
-                        logger.warning(f"⚠️ No se pudo obtener los detalles básicos de una oferta: {str(e)}")
-                        continue
-                
-                # Procesar cada oferta
-                for i, details in enumerate(offer_details, 1):
-                    if total_offers >= limit:
-                        break
-                        
-                    try:
-                        logger.info(f"\n📋 Procesando oferta {total_offers + 1}/{limit}")
-                        
-                        # Navegar a la página de detalles de la oferta
-                        self.driver.get(details['url'])
-                        time.sleep(2)  # Esperar a que cargue la página
-                        
-                        # Extraer detalles adicionales de la oferta
-                        job_details = self.extract_job_details(details['url'])
-                        
-                        # Verificar si la oferta ya existe
-                        existing_job = JobOffer.objects.filter(url=details['url']).first()
-                        if existing_job:
-                            # Actualizar la oferta existente
-                            self._update_existing_job(existing_job, job_details, search_history)
-                            jobs_to_update.append(existing_job)
-                            logger.info(f"✅ Oferta existente actualizada: {details['title']} en {details['company']}")
-                        else:
-                            # Crear nueva oferta
-                            job = JobOffer(
-                                title=details['title'],
-                                company=details['company'],
-                                url=details['url'],
-                                search_history=search_history,
-                                **job_details
-                            )
-                            jobs_to_create.append(job)
-                            logger.info(f"✅ Nueva oferta creada: {details['title']} en {details['company']}")
-                        
-                        total_offers += 1
-                        
-                    except Exception as e:
-                        logger.error(f"❌ Error procesando oferta {total_offers + 1}: {str(e)}")
-                        continue
-                
-                # Verificar si hay más páginas y si necesitamos continuar
-                if total_offers < limit:
-                    try:
-                        next_page = self.driver.find_element(By.CSS_SELECTOR, "a.page-link[href*='pagina=" + str(current_page + 1) + "']")
-                        if next_page:
-                            logger.info(f"🔄 Navegando a la página {current_page + 1}")
-                            next_page.click()
-                            time.sleep(3)  # Esperar a que cargue la nueva página
-                            current_page += 1
-                            continue
-                    except:
-                        logger.info("ℹ️ No hay más páginas disponibles")
-                        break
+                logger.error(f"Error en el scraping: {str(e)}")
+                logger.error(f"Traceback: {inspect.trace()}")
+                retry_count += 1
+                if retry_count < max_retries:
+                    logger.info(f"Reintentando en {retry_count * 5} segundos...")
+                    time.sleep(retry_count * 5)
+                    continue
                 else:
-                    break
-            
-            # Actualizar el número total de ofertas en el historial de búsqueda
-            search_history.results_count = total_offers
-            search_history.save()
-            
-            # Guardar las ofertas en la base de datos
-            if jobs_to_create:
-                JobOffer.objects.bulk_create(jobs_to_create)
-                logger.info(f"✅ Se guardaron {len(jobs_to_create)} nuevas ofertas")
-            
-            if jobs_to_update:
-                for job in jobs_to_update:
-                    job.save()
-                logger.info(f"✅ Se actualizaron {len(jobs_to_update)} ofertas existentes")
-            
-            return {
-                'success': True,
-                'count': len(jobs_to_create) + len(jobs_to_update),
-                'search_id': search_history.id
-            }
-            
-        except Exception as e:
-            logger.error(f"❌ Error en la búsqueda: {str(e)}")
-            return {
-                'success': False,
-                'error': str(e)
-            } 
+                    return {
+                        'success': False,
+                        'error': str(e)
+                    } 

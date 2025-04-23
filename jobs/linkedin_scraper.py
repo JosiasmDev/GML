@@ -2,17 +2,14 @@ from linkedin_api import Linkedin
 import logging
 import os
 import time
+import random
 from datetime import datetime
 from django.conf import settings
 from .models import JobOffer, SearchHistory
 from django.utils import timezone
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException, NoSuchElementException
-from bs4 import BeautifulSoup
 from dotenv import load_dotenv
+import re
+from urllib.parse import quote
 
 # Configurar logging
 logging.basicConfig(
@@ -32,49 +29,23 @@ class LinkedInScraper:
     def __init__(self):
         """Inicializa el scraper de LinkedIn"""
         self.base_url = "https://www.linkedin.com"
-        self.driver = None
         self.logger = logging.getLogger(__name__)
         
-        # Verificar credenciales
-        self.email = os.getenv('LINKEDIN_EMAIL')
-        self.password = os.getenv('LINKEDIN_PASSWORD')
+        # Credenciales
+        self.email = "josisapp@gmail.com"
+        self.password = "DIcampus1!"
         
-        if not self.email or not self.password:
-            logger.error("No se encontraron las credenciales de LinkedIn en el archivo .env")
-            raise ValueError("No se encontraron las credenciales de LinkedIn en el archivo .env")
-        
-        logger.info("Credenciales de LinkedIn cargadas correctamente")
-        
-        self._setup_driver()
-        
-    def _setup_driver(self):
-        """Configura el driver de Selenium"""
+        # Inicializar la API de LinkedIn
         try:
-            options = webdriver.FirefoxOptions()
-            options.add_argument('--headless')
-            options.add_argument('--no-sandbox')
-            options.add_argument('--disable-dev-shm-usage')
-            
-            # Configurar el user agent
-            options.set_preference("general.useragent.override", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
-            
-            # Configurar preferencias de caché
-            options.set_preference("browser.cache.disk.enable", False)
-            options.set_preference("browser.cache.memory.enable", False)
-            options.set_preference("browser.cache.offline.enable", False)
-            options.set_preference("network.http.use-cache", False)
-            
-            self.driver = webdriver.Firefox(options=options)
-            self.driver.set_page_load_timeout(30)
-            logger.info("Driver de Selenium configurado correctamente")
-            
+            self.api = Linkedin(self.email, self.password)
+            logger.info("✅ API de LinkedIn inicializada correctamente")
         except Exception as e:
-            logger.error(f"Error al configurar el driver: {str(e)}")
+            logger.error(f"❌ Error al inicializar la API de LinkedIn: {str(e)}")
             raise
-        
+    
     def search_jobs(self, keywords, location="Spain", limit=5):
         """
-        Busca ofertas de trabajo en LinkedIn
+        Busca ofertas de trabajo en LinkedIn usando la API
         """
         try:
             logger.info(f"🔍 Iniciando búsqueda en LinkedIn")
@@ -82,90 +53,12 @@ class LinkedInScraper:
             logger.info(f"📍 Ubicación: {location}")
             logger.info(f"📊 Límite de resultados: {limit}")
             
-            # Mapeo de códigos a nombres de ubicación
-            location_mapping = {
-                "Toda España",
-                "El extranjero",
-                "A Coruña",
-                "Álava/Araba",
-                "Albacete",
-                "Alicante/Alacant",
-                "Almería",
-                "Asturias",
-                "Ávila",
-                "Badajoz",
-                "Barcelona",
-                "Burgos",
-                "Cáceres",
-                "Cádiz",
-                "Cantabria",
-                "Castellón/Castelló",
-                "Ceuta",
-                "Ciudad Real",
-                "Córdoba",
-                "Cuenca",
-                "Girona",
-                "Granada",
-                "Guadalajara",
-                "Guipúzcoa/Gipuzkoa",
-                "Huelva",
-                "Huesca",
-                "Islas Baleares/Illes Balears",
-                "Jaén",
-                "La Rioja",
-                "Las Palmas",
-                "León",
-                "Lleida",
-                "Lugo",
-                "Madrid",
-                "Málaga",
-                "Melilla",
-                "Murcia",
-                "Navarra",
-                "Ourense",
-                "Palencia",
-                "Pontevedra",
-                "Salamanca",
-                "Santa Cruz de Tenerife",
-                "Segovia",
-                "Sevilla",
-                "Soria",
-                "Tarragona",
-                "Teruel",
-                "Toledo",
-                "Valencia/València",
-                "Valladolid",
-                "Vizcaya/Bizkaia",
-                "Zamora",
-                "Zaragoza"
-            }
-            
-            # Inicializar la API de LinkedIn
-            logger.info("🔄 Conectando a LinkedIn...")
-            api = Linkedin(self.email, self.password)
-            
-            # Mapeo de ubicaciones comunes a códigos de LinkedIn
-            linkedin_location_mapping = {
-                "Asturias": "102454443",
-                "Madrid": "105646813",
-                "Barcelona": "105646813",
-                "Valencia": "105646813",
-                "Sevilla": "105646813",
-                "Bilbao": "105646813",
-                "Málaga": "105646813",
-                "Zaragoza": "105646813",
-                "Spain": "105646813"
-            }
-            
-            # Obtener el código de ubicación para LinkedIn
-            location_code = linkedin_location_mapping.get(location, "105646813")  # Por defecto, España
-            
-            logger.info("🔍 Realizando búsqueda...")
-            # Realizar la búsqueda con el límite especificado
-            search_results = api.search_jobs(
+            # Realizar la búsqueda con la API
+            logger.info("🔍 Realizando búsqueda con la API...")
+            search_results = self.api.search_jobs(
                 keywords=keywords,
-                location_name=location_code,
-                limit=limit  # Usar el límite proporcionado
+                location_name=location,  # Usar la ubicación directamente
+                limit=limit
             )
             
             # Asegurarnos de que solo procesamos el número de ofertas especificado
@@ -174,17 +67,14 @@ class LinkedInScraper:
             logger.info(f"✅ Búsqueda completada. Se encontraron {len(search_results)} ofertas")
             
             # Crear un historial de búsqueda
-            logger.info("💾 Guardando búsqueda en el historial...")
             search_history = SearchHistory.objects.create(
                 keywords=keywords,
-                location=location,  # Usar el nombre de la ubicación, no el código
+                location=location,
                 source='LinkedIn',
                 results_count=len(search_results)
             )
-            logger.info(f"✅ Búsqueda guardada con ID: {search_history.id}")
             
-            # Guardar las ofertas en la base de datos
-            logger.info("💾 Guardando ofertas en la base de datos...")
+            # Listas para almacenar las ofertas
             jobs_to_create = []
             jobs_to_update = []
             
@@ -201,115 +91,221 @@ class LinkedInScraper:
                     
                     logger.info(f"🔑 ID de la oferta: {job_id}")
                     
-                    # Obtener detalles de la oferta
-                    job_details = api.get_job(job_id)
+                    # Obtener detalles de la oferta con la API
+                    job_details = self.api.get_job(job_id)
+                    
+                    # Imprimir los datos que devuelve la API
+                    logger.info("📊 Datos devueltos por la API:")
+                    logger.info(f"Título: {job_details.get('title', 'No disponible')}")
+                    logger.info(f"Empresa (companyName): {job_details.get('companyName', 'No disponible')}")
+                    logger.info(f"Empresa (company): {job_details.get('company', 'No disponible')}")
+                    logger.info(f"Ubicación: {job_details.get('location', 'No disponible')}")
+                    logger.info(f"Salario: {job_details.get('salary', 'No disponible')}")
+                    logger.info(f"Modo de trabajo: {job_details.get('workplaceType', 'No disponible')}")
+                    logger.info(f"Experiencia: {job_details.get('experienceLevel', 'No disponible')}")
+                    logger.info(f"Tipo de contrato: {job_details.get('employmentType', 'No disponible')}")
+                    logger.info(f"Estudios: {job_details.get('educationRequirements', 'No disponible')}")
+                    logger.info(f"Idiomas: {job_details.get('languageRequirements', 'No disponible')}")
+                    logger.info(f"Habilidades: {job_details.get('requiredSkills', 'No disponible')}")
+                    logger.info(f"Fecha de publicación: {job_details.get('listedAt', 'No disponible')}")
+                    logger.info("📋 Datos completos de la oferta:")
+                    logger.info(job_details)
                     
                     # Extraer información básica
-                    title = job_details.get('title', '')
-                    company = job_details.get('companyName', '')
-                    job_location = job_details.get('location', '')
+                    title = job_details.get('title', 'Título no especificado')
+                    
+                    # Extraer nombre de la empresa
+                    company = "Empresa no especificada"
+                    if 'companyDetails' in job_details:
+                        company_details = job_details['companyDetails']
+                        if 'com.linkedin.voyager.deco.jobs.web.shared.WebCompactJobPostingCompany' in company_details:
+                            company_info = company_details['com.linkedin.voyager.deco.jobs.web.shared.WebCompactJobPostingCompany']
+                            if 'companyResolutionResult' in company_info:
+                                company = company_info['companyResolutionResult'].get('name', 'Empresa no especificada')
+                    
+                    # Extraer ubicación
+                    job_location = job_details.get('formattedLocation', location)
                     
                     # Si la ubicación es un código numérico, buscar su nombre en el mapeo
                     if job_location and job_location.isdigit():
-                        job_location = location_mapping.get(job_location, location)  # Si no encuentra el código, usar la ubicación original
+                        job_location = linkedin_location_mapping.get(job_location, location)
                     elif not job_location:
-                        job_location = location  # Usar la ubicación original de la búsqueda
+                        job_location = location
+                    
+                    # Extraer número de inscritos/solicitudes
+                    inscritos = "No especificado"
+                    if 'description' in job_details:
+                        description = job_details['description'].get('text', '')
+                        # Buscar patrones de número de solicitudes/inscritos
+                        inscritos_patterns = [
+                            r'(\d+)\s+personas?\s+han\s+hecho\s+clic\s+en\s+«Solicitar»',
+                            r'(\d+)\s+solicitudes',
+                            r'(\d+)\s+inscritos',
+                            r'(\d+)\s+candidatos',
+                            r'(\d+)\s+personas?\s+han\s+solicitado',
+                            r'(\d+)\s+solicitantes'
+                        ]
+                        
+                        for pattern in inscritos_patterns:
+                            inscritos_match = re.search(pattern, description, re.IGNORECASE)
+                            if inscritos_match:
+                                inscritos = inscritos_match.group(1)
+                                break
                     
                     url = f"https://www.linkedin.com/jobs/view/{job_id}"
+                    
+                    # Extraer salario
+                    salary = "No especificado"
+                    if 'description' in job_details:
+                        description = job_details['description'].get('text', '')
+                        # Buscar patrones de salario en la descripción
+                        salary_patterns = [
+                            r'Salario:?\s*entre\s*(\d+[.,]?\d*)\s*€\s*y\s*(\d+[.,]?\d*)\s*€\s*anuales',
+                            r'Salario:?\s*(\d+[.,]?\d*)\s*€\s*anuales',
+                            r'Salario:?\s*entre\s*(\d+[.,]?\d*)\s*y\s*(\d+[.,]?\d*)\s*€',
+                            r'Salario:?\s*(\d+[.,]?\d*)\s*€'
+                        ]
+                        
+                        for pattern in salary_patterns:
+                            salary_match = re.search(pattern, description, re.IGNORECASE)
+                            if salary_match:
+                                if len(salary_match.groups()) == 2:
+                                    salary = f"{salary_match.group(1)} - {salary_match.group(2)} € anuales"
+                                else:
+                                    salary = f"{salary_match.group(1)} € anuales"
+                                break
+                    
+                    # Extraer modo de trabajo
+                    work_mode = "No especificado"
+                    if 'workplaceTypes' in job_details:
+                        workplace_types = job_details['workplaceTypes']
+                        if isinstance(workplace_types, list):
+                            for workplace_type in workplace_types:
+                                if workplace_type == 'urn:li:fs_workplaceType:1':
+                                    work_mode = 'Presencial'
+                                elif workplace_type == 'urn:li:fs_workplaceType:2':
+                                    work_mode = 'Híbrido'
+                                elif workplace_type == 'urn:li:fs_workplaceType:3':
+                                    work_mode = 'Remoto'
+                    
+                    # Si no se encontró en workplaceTypes, buscar en la descripción
+                    if work_mode == "No especificado" and 'description' in job_details:
+                        description = job_details['description'].get('text', '')
+                        if 'híbrido' in description.lower() or 'hibrido' in description.lower():
+                            work_mode = 'Híbrido'
+                        elif 'presencial' in description.lower():
+                            work_mode = 'Presencial'
+                        elif 'remoto' in description.lower() or 'teletrabajo' in description.lower():
+                            work_mode = 'Remoto'
+                    
+                    # Extraer experiencia mínima
+                    min_experience = "No especificado"
+                    if 'description' in job_details:
+                        description = job_details['description'].get('text', '')
+                        # Buscar años de experiencia en la descripción
+                        exp_patterns = [
+                            r'(\d+)\s*años?\s*de\s*experiencia',
+                            r'experiencia\s*de\s*(\d+)\s*años?',
+                            r'experiencia\s*mínima\s*de\s*(\d+)\s*años?',
+                            r'experiencia\s*en\s*desarrollo\s*de\s*(\d+)\s*años?'
+                        ]
+                        
+                        for pattern in exp_patterns:
+                            exp_match = re.search(pattern, description, re.IGNORECASE)
+                            if exp_match:
+                                min_experience = f"{exp_match.group(1)} años"
+                                break
+                    
+                    # Extraer tipo de contrato
+                    contract_type = "No especificado"
+                    if 'description' in job_details:
+                        description = job_details['description'].get('text', '')
+                        # Buscar patrones de tipo de contrato en la descripción
+                        contract_patterns = [
+                            r'jornada\s+completa',
+                            r'tiempo\s+completo',
+                            r'full\s+time',
+                            r'jornada\s+parcial',
+                            r'tiempo\s+parcial',
+                            r'part\s+time',
+                            r'contrato\s+indefinido',
+                            r'contrato\s+temporal',
+                            r'contrato\s+por\s+obra'
+                        ]
+                        
+                        for pattern in contract_patterns:
+                            if re.search(pattern, description, re.IGNORECASE):
+                                if 'completa' in pattern or 'completo' in pattern or 'full' in pattern:
+                                    contract_type = 'Jornada completa'
+                                elif 'parcial' in pattern or 'part' in pattern:
+                                    contract_type = 'Jornada parcial'
+                                elif 'indefinido' in pattern:
+                                    contract_type = 'Contrato indefinido'
+                                elif 'temporal' in pattern:
+                                    contract_type = 'Contrato temporal'
+                                elif 'obra' in pattern:
+                                    contract_type = 'Contrato por obra'
+                                break
+                    
+                    # Extraer estudios
+                    studies = "No especificado"
+                    if 'description' in job_details:
+                        description = job_details['description'].get('text', '')
+                        if 'titulación' in description.lower() or 'grado' in description.lower() or 'licenciatura' in description.lower():
+                            studies = 'Titulación requerida'
+                    
+                    # Extraer idiomas
+                    languages = "No especificado"
+                    if 'description' in job_details:
+                        description = job_details['description'].get('text', '')
+                        if 'inglés' in description.lower():
+                            languages = 'Inglés'
+                    
+                    # Extraer habilidades requeridas
+                    required_skills = "No especificado"
+                    if 'description' in job_details:
+                        description = job_details['description'].get('text', '')
+                        # Buscar habilidades en la descripción
+                        skills = []
+                        if 'php' in description.lower():
+                            skills.append('PHP')
+                        if 'python' in description.lower():
+                            skills.append('Python')
+                        if 'javascript' in description.lower():
+                            skills.append('JavaScript')
+                        if 'html' in description.lower():
+                            skills.append('HTML')
+                        if 'css' in description.lower():
+                            skills.append('CSS')
+                        if 'django' in description.lower():
+                            skills.append('Django')
+                        if 'laravel' in description.lower():
+                            skills.append('Laravel')
+                        if 'symfony' in description.lower():
+                            skills.append('Symfony')
+                        if 'react' in description.lower():
+                            skills.append('React')
+                        if 'angular' in description.lower():
+                            skills.append('Angular')
+                        if 'vue' in description.lower():
+                            skills.append('Vue.js')
+                        if 'docker' in description.lower():
+                            skills.append('Docker')
+                        if 'aws' in description.lower():
+                            skills.append('AWS')
+                        if 'git' in description.lower():
+                            skills.append('Git')
+                        if skills:
+                            required_skills = ', '.join(skills)
+                    
+                    # Extraer fecha de publicación
+                    publication_date = "No especificado"
+                    if 'listedAt' in job_details:
+                        publication_date = self._parse_date(job_details['listedAt'])
                     
                     logger.info(f"📌 Título: {title}")
                     logger.info(f"🏢 Empresa: {company}")
                     logger.info(f"📍 Ubicación: {job_location}")
-                    
-                    # Extraer salario
-                    salary = 'No especificado'
-                    if 'salary' in job_details:
-                        salary_info = job_details['salary']
-                        if isinstance(salary_info, dict):
-                            if 'min' in salary_info and 'max' in salary_info:
-                                salary = f"{salary_info['min']} - {salary_info['max']} {salary_info.get('currency', '')}"
-                            elif 'amount' in salary_info:
-                                salary = f"{salary_info['amount']} {salary_info.get('currency', '')}"
-                    logger.info(f"💰 Salario extraído: {salary}")
-                    
-                    # Extraer modo de trabajo
-                    work_mode = 'No especificado'
-                    if 'workplaceType' in job_details:
-                        work_mode = job_details['workplaceType']
-                        if work_mode.startswith('urn:li:fs_workplaceType:'):
-                            work_mode = work_mode.split(':')[-1]
-                            if work_mode == '1':
-                                work_mode = 'Presencial'
-                            elif work_mode == '2':
-                                work_mode = 'Híbrido'
-                            elif work_mode == '3':
-                                work_mode = 'Remoto'
-                    logger.info(f"🏠 Modo de trabajo extraído: {work_mode}")
-                    
-                    # Extraer experiencia mínima
-                    min_experience = 'No especificado'
-                    if 'experienceLevel' in job_details:
-                        exp = job_details['experienceLevel']
-                        if isinstance(exp, dict):
-                            min_experience = exp.get('value', '')
-                        elif isinstance(exp, str):
-                            min_experience = exp
-                    logger.info(f"👨‍💼 Experiencia extraída: {min_experience}")
-                    
-                    # Extraer tipo de contrato
-                    contract_type = 'No especificado'
-                    if 'employmentType' in job_details:
-                        contract = job_details['employmentType']
-                        if isinstance(contract, dict):
-                            contract_type = contract.get('value', '')
-                        elif isinstance(contract, str):
-                            contract_type = contract
-                    logger.info(f"📄 Tipo de contrato extraído: {contract_type}")
-                    
-                    # Extraer estudios
-                    studies = 'No especificado'
-                    if 'educationRequirements' in job_details:
-                        education = job_details['educationRequirements']
-                        if isinstance(education, dict):
-                            studies = education.get('value', '')
-                        elif isinstance(education, str):
-                            studies = education
-                    logger.info(f"🎓 Estudios extraídos: {studies}")
-                    
-                    # Extraer idiomas
-                    languages = 'No especificado'
-                    if 'languageRequirements' in job_details:
-                        langs = job_details['languageRequirements']
-                        if isinstance(langs, list):
-                            languages = ', '.join([lang.get('name', '') for lang in langs])
-                        elif isinstance(langs, str):
-                            languages = langs
-                    logger.info(f"🌐 Idiomas extraídos: {languages}")
-                    
-                    # Extraer habilidades requeridas
-                    required_skills = 'No especificado'
-                    if 'requiredSkills' in job_details:
-                        skills = job_details['requiredSkills']
-                        if isinstance(skills, list):
-                            required_skills = ', '.join([skill.get('name', '') for skill in skills])
-                        elif isinstance(skills, str):
-                            required_skills = skills
-                    logger.info(f"💡 Habilidades extraídas: {required_skills}")
-                    
-                    # Extraer vacantes e inscritos
-                    vacantes = 'No especificado'
-                    inscritos = 'No especificado'
-                    if 'openPositions' in job_details:
-                        vacantes = str(job_details['openPositions'])
-                    if 'applicants' in job_details:
-                        inscritos = str(job_details['applicants'])
-                    logger.info(f"👥 Vacantes: {vacantes}, Inscritos: {inscritos}")
-                    
-                    # Extraer fecha de publicación
-                    publication_date = 'No especificado'
-                    if 'listedAt' in job_details:
-                        publication_date = self._parse_date(job_details['listedAt'])
-                    logger.info(f"📅 Fecha de publicación: {publication_date}")
                     
                     # Verificar si la oferta ya existe
                     existing_job = JobOffer.objects.filter(url=url).first()
@@ -317,7 +313,7 @@ class LinkedInScraper:
                         # Actualizar la oferta existente
                         existing_job.title = title
                         existing_job.company = company
-                        existing_job.location = job_location  # Usar la ubicación procesada
+                        existing_job.location = job_location
                         existing_job.salary = salary
                         existing_job.work_mode = work_mode
                         existing_job.min_experience = min_experience
@@ -325,10 +321,9 @@ class LinkedInScraper:
                         existing_job.studies = studies
                         existing_job.languages = languages
                         existing_job.required_skills = required_skills
-                        existing_job.vacantes = vacantes
-                        existing_job.inscritos = inscritos
                         existing_job.publication_date = publication_date
                         existing_job.search_history = search_history
+                        existing_job.inscritos = inscritos
                         jobs_to_update.append(existing_job)
                         logger.info(f"✅ Oferta existente actualizada: {title} en {company}")
                     else:
@@ -336,7 +331,7 @@ class LinkedInScraper:
                         job = JobOffer(
                             title=title,
                             company=company,
-                            location=job_location,  # Usar la ubicación procesada
+                            location=job_location,
                             salary=salary,
                             work_mode=work_mode,
                             min_experience=min_experience,
@@ -346,9 +341,8 @@ class LinkedInScraper:
                             required_skills=required_skills,
                             url=url,
                             search_history=search_history,
-                            vacantes=vacantes,
-                            inscritos=inscritos,
-                            publication_date=publication_date
+                            publication_date=publication_date,
+                            inscritos=inscritos
                         )
                         jobs_to_create.append(job)
                         logger.info(f"✅ Nueva oferta creada: {title} en {company}")
@@ -382,7 +376,7 @@ class LinkedInScraper:
                 'success': False,
                 'error': str(e)
             }
-            
+    
     def _parse_date(self, date_str):
         """
         Convierte una fecha de LinkedIn a un formato legible
@@ -398,4 +392,10 @@ class LinkedInScraper:
                 return 'No especificado'
         except Exception as e:
             logger.error(f"Error al parsear fecha: {str(e)}")
-            return 'No especificado' 
+            return 'No especificado'
+
+    def random_sleep(self, min_seconds, max_seconds):
+        """
+        Pausa aleatoria entre dos segundos
+        """
+        time.sleep(random.uniform(min_seconds, max_seconds)) 
