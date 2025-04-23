@@ -136,6 +136,15 @@ def search_jobs(request):
                         'success': False,
                         'message': 'El servicio de LinkedIn no está disponible en este momento. Por favor, inténtalo más tarde o usa otro portal de búsqueda.'
                     })
+            elif source == 'TecnoEmpleo':
+                try:
+                    from .tecnoempleo_scraper import TecnoEmpleoScraper
+                    scraper = TecnoEmpleoScraper()
+                except Exception as e:
+                    return JsonResponse({
+                        'success': False,
+                        'message': 'El servicio de TecnoEmpleo no está disponible en este momento. Por favor, inténtalo más tarde o usa otro portal de búsqueda.'
+                    })
             else:
                 scraper = InfoJobsScraper()
             
@@ -235,3 +244,19 @@ def linkedin_search(request):
     }
     
     return render(request, 'jobs/linkedin_search.html', context)
+
+@login_required
+def tecnoempleo_search(request):
+    """Vista para la página de búsqueda de TecnoEmpleo"""
+    # Obtener estadísticas para TecnoEmpleo
+    total_searches = SearchHistory.objects.filter(source='TecnoEmpleo').count()
+    total_jobs = JobOffer.objects.filter(search_history__source='TecnoEmpleo').count()
+    favorite_jobs = JobOffer.objects.filter(is_favorite=True, search_history__source='TecnoEmpleo').count()
+    
+    context = {
+        'total_searches': total_searches,
+        'total_jobs': total_jobs,
+        'favorite_jobs': favorite_jobs,
+    }
+    
+    return render(request, 'jobs/tecnoempleo_search.html', context)

@@ -13,4 +13,5 @@ urlpatterns = [
     path('portal/<str:portal_name>/', views.under_construction, name='under_construction'),
     path('infojobs/', views.infojobs_search, name='infojobs_search'),
     path('linkedin/', views.linkedin_search, name='linkedin_search'),
+    path('tecnoempleo/', views.tecnoempleo_search, name='tecnoempleo_search'),
 ] 
